@@ -176,6 +176,25 @@
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
     var particles = [];
     var mx = window.innerWidth / 2, my = window.innerHeight / 2;
+
+    /* Pre-rendered noise tile, stamped over the gas each frame via
+       source-atop so grain only shows where the gas itself is drawn. */
+    var noiseTile = document.createElement('canvas');
+    noiseTile.width = 96;
+    noiseTile.height = 96;
+    (function paintNoise() {
+      var nctx = noiseTile.getContext('2d');
+      var img = nctx.createImageData(96, 96);
+      for (var i = 0; i < img.data.length; i += 4) {
+        var v = Math.random() * 255;
+        img.data[i] = v;
+        img.data[i + 1] = v;
+        img.data[i + 2] = v;
+        img.data[i + 3] = Math.random() * 90;
+      }
+      nctx.putImageData(img, 0, 0);
+    })();
+    var noisePattern = ctx.createPattern(noiseTile, 'repeat');
     var lastSpawn = 0;
 
     function resizeCanvas() {
@@ -240,7 +259,7 @@
         p.vy *= 0.985;
 
         var fade = lifeT < 0.12 ? lifeT / 0.12 : 1 - (lifeT - 0.12) / 0.88;
-        var alpha = Math.max(0, fade) * 0.14;
+        var alpha = Math.max(0, fade) * 0.24;
         var size = p.size * (1 + lifeT * 1.6);
 
         var r = Math.round(ionRGB[0] + (signalRGB[0] - ionRGB[0]) * p.mix);
@@ -254,6 +273,12 @@
         ctx.beginPath();
         ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
         ctx.fill();
+      }
+
+      if (particles.length && noisePattern) {
+        ctx.globalCompositeOperation = 'source-atop';
+        ctx.fillStyle = noisePattern;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
     }
 

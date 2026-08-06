@@ -916,10 +916,42 @@ const initPortfolio = () => {
       tile.className = `tile project-card-link${index === activeIndex ? ' is-active' : ''}`;
       tile.href = `project.html?id=${project.id}&category=${encodeURIComponent(project.category)}`;
       tile.setAttribute('aria-label', `View ${project.title}`);
-      tile.innerHTML =
+
+      const media = document.createElement('div');
+      media.className = 'tile-media';
+      const thumbSrc = resolveProjectThumb(project);
+      if (thumbSrc) {
+        if (project.mediaType === 'video') {
+          const video = document.createElement('video');
+          video.src = thumbSrc;
+          video.muted = true;
+          video.loop = true;
+          video.autoplay = true;
+          video.playsInline = true;
+          video.setAttribute('muted', '');
+          video.setAttribute('loop', '');
+          video.setAttribute('autoplay', '');
+          media.appendChild(video);
+        } else {
+          const img = document.createElement('img');
+          img.src = thumbSrc;
+          img.alt = '';
+          img.loading = 'lazy';
+          media.appendChild(img);
+        }
+      }
+
+      const scrim = document.createElement('div');
+      scrim.className = 'tile-scrim';
+
+      const body = document.createElement('div');
+      body.className = 'tile-body';
+      body.innerHTML =
         `<span class="tile-num">${String(index + 1).padStart(2, '0')}</span>` +
         `<svg class="tile-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${PORTFOLIO_GLYPH[project.category] || ''}</svg>` +
         `<span class="tile-name">${project.title}</span>`;
+
+      tile.append(media, scrim, body);
       tile.addEventListener('mouseenter', () => setActive(index));
       tile.addEventListener('focus', () => setActive(index));
       tile.addEventListener('keydown', (event) => {
