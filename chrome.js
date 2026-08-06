@@ -7,16 +7,16 @@
   var root = document.documentElement;
 
   /* ---------------- theme ---------------- */
+  /* Which theme this load gets is randomized fresh every time - an inline
+     script earlier in <body> already rolled it and set data-theme before
+     first paint (so there's no flash), same trick the page-loader uses for
+     mo-nav. This just reads that pick and wires up manual toggling for the
+     rest of this page view; toggling here isn't persisted, since the whole
+     point is that a reload rolls again rather than remembering. */
   var themeSwitch = document.getElementById('theme-switch');
-  var storedTheme = null;
-  try { storedTheme = localStorage.getItem('mo-theme'); } catch (e) {}
-  if (storedTheme) root.setAttribute('data-theme', storedTheme);
 
   function isLight() {
-    /* Light is the site's default regardless of OS preference; dark only
-       applies once someone explicitly switches to it via the toggle. */
-    if (root.hasAttribute('data-theme')) return root.getAttribute('data-theme') === 'light';
-    return true;
+    return root.getAttribute('data-theme') !== 'dark';
   }
   function syncThemeSwitch() {
     if (!themeSwitch) return;
@@ -28,7 +28,6 @@
     themeSwitch.addEventListener('click', function () {
       var next = isLight() ? 'dark' : 'light';
       root.setAttribute('data-theme', next);
-      try { localStorage.setItem('mo-theme', next); } catch (e) {}
       syncThemeSwitch();
       playToggle();
       if (window.__refreshGasColors) window.__refreshGasColors();

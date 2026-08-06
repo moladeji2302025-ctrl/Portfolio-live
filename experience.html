@@ -69,6 +69,9 @@
   <div class="page-loader" id="pageLoader" aria-hidden="true"></div>
   <script>
     try {
+      document.documentElement.setAttribute('data-theme', Math.random() < 0.5 ? 'light' : 'dark');
+    } catch (e) {}
+    try {
       if (sessionStorage.getItem('mo-nav') === '1') {
         document.getElementById('pageLoader').classList.add('is-active', 'is-instant');
         sessionStorage.removeItem('mo-nav');
