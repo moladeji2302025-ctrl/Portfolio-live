@@ -292,6 +292,7 @@ a {
   min-height: calc(100vh - var(--nav-height));
   position: relative;
   overflow: hidden;
+  --hero-content-width: min(1100px, calc(100% - 3rem));
 }
 
 .hero-bg {
@@ -315,7 +316,7 @@ a {
   z-index: 2;
   display: grid;
   grid-template-columns: 1fr;
-  width: min(1100px, calc(100% - 3rem));
+  width: var(--hero-content-width);
   gap: 2rem;
   align-items: center;
   text-align: center;
@@ -471,9 +472,16 @@ a {
   gap: 1rem;
 }
 
+/* Anchored to the centered content column's own left edge (with a fixed
+   gap) rather than the section's fixed page edge, so it moves together
+   with .hero-inner instead of sitting independently - on wide viewports
+   that would otherwise leave it stranded out in the margin, unrelated to
+   where the centered text actually is. max() keeps its old edge-pinned
+   spacing as a floor on narrower viewports where the content column is
+   already close to full width. */
 .hero-side {
   position: absolute;
-  left: 1.4rem;
+  left: max(1.4rem, calc(50% - var(--hero-content-width) / 2 - 3.5rem));
   top: 50%;
   transform: translateY(-50%);
   z-index: 3;
