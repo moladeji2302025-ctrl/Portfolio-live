@@ -599,8 +599,7 @@
            swarm moves either direction. */
         var nearT = Math.max(0, 1 - dist / 130);
         var farT = Math.min(1, Math.max(0, (dist - 340) / 300));
-        var shrinkT = Math.max(nearT, farT);
-        var sizeMult = 1 - shrinkT * 0.9;
+        var sizeMult = 1 - nearT * 0.9 - farT * 0.4;
 
         ctx.save();
         ctx.translate(p.x, p.y);
