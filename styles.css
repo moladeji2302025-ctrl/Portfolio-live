@@ -308,9 +308,9 @@ a {
   display: grid;
   grid-template-columns: 1fr;
   max-width: 760px;
+  margin-inline: auto;
   gap: 2rem;
   align-items: center;
-  justify-items: center;
   text-align: center;
   padding: 4rem 0;
 }
