@@ -358,6 +358,86 @@ a {
   }
 }
 
+/* The full stop after "Art", but alive: a small ball that bounces in place
+   forever, sized and grounded to the text baseline like a real period would
+   be. Squash-and-stretch plus eased (slow-out leaving the ground, slow-in
+   arriving at the peak) timing per keyframe segment are what read as an
+   actual bounce rather than a mechanical up-down slide - em-sized amplitude
+   keeps its peak well under the cap-height of the surrounding letters. */
+.hero-line .bounce-dot {
+  display: inline-block;
+  width: 0.12em;
+  height: 0.12em;
+  margin-left: 0.06em;
+  border-radius: 50%;
+  vertical-align: baseline;
+  transform-origin: center bottom;
+  background-color: hsl(200 82% 40%);
+  animation:
+    ball-bounce 1s infinite,
+    ball-color-light 6s ease-in-out infinite;
+}
+
+:root[data-theme='dark'] .hero-line .bounce-dot {
+  animation:
+    ball-bounce 1s infinite,
+    ball-color-dark 6s ease-in-out infinite;
+}
+
+@keyframes ball-bounce {
+  0% {
+    transform: translateY(0) scaleX(1.32) scaleY(0.64);
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  8% {
+    transform: translateY(-0.08em) scaleX(0.88) scaleY(1.16);
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  50% {
+    transform: translateY(-0.58em) scaleX(1.04) scaleY(0.96);
+    animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
+  }
+  92% {
+    transform: translateY(-0.08em) scaleX(0.88) scaleY(1.16);
+    animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  100% {
+    transform: translateY(0) scaleX(1.32) scaleY(0.64);
+  }
+}
+
+/* One hue per bounce, six bounces per cycle, each shift eased across the
+   flight rather than snapping at contact - it lands on the new color right
+   as it lands on the ground. Hue sweep matches the particle system's
+   (200 -> 370); lightness matches the brush-word gradient per theme. */
+@keyframes ball-color-light {
+  0%      { background-color: hsl(200 82% 40%); }
+  16.667% { background-color: hsl(228 82% 40%); }
+  33.333% { background-color: hsl(256 82% 40%); }
+  50%     { background-color: hsl(284 82% 40%); }
+  66.667% { background-color: hsl(312 82% 40%); }
+  83.333% { background-color: hsl(340 82% 40%); }
+  100%    { background-color: hsl(200 82% 40%); }
+}
+
+@keyframes ball-color-dark {
+  0%      { background-color: hsl(200 82% 66%); }
+  16.667% { background-color: hsl(228 82% 66%); }
+  33.333% { background-color: hsl(256 82% 66%); }
+  50%     { background-color: hsl(284 82% 66%); }
+  66.667% { background-color: hsl(312 82% 66%); }
+  83.333% { background-color: hsl(340 82% 66%); }
+  100%    { background-color: hsl(200 82% 66%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-line .bounce-dot {
+    animation: none;
+    background-color: var(--accent);
+    transform: none;
+  }
+}
+
 .hero-line .brush-icon {
   display: none;
 }
