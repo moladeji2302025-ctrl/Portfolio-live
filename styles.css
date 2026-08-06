@@ -322,16 +322,17 @@ a {
   display: block;
 }
 
-/* Fixed footprint wide enough for "ART" in the widest of the ten fonts
-   below, so the morph never nudges the bounce-dot or wraps the line -
-   text stays flush-left within it, same as it would set naturally. Color
-   is the ordinary body-text color, same as every other word in the
-   headline - only the typeface itself changes. */
+/* Renders as "Art", not "ART" - .hero-line uppercases everything else in
+   the headline, so this needs its own override back to the literal markup
+   casing. Sized to its own content (not a fixed box) so the bounce-dot
+   sitting right after it stays as close as the text itself allows, even
+   though that means its exact pixel position drifts slightly as the font
+   morphs. Color is the ordinary body-text color, same as every other word
+   in the headline - only the typeface itself changes. */
 .hero-line .brush-word {
   position: relative;
   display: inline-block;
-  width: 4.2em;
-  text-align: left;
+  text-transform: none;
   color: var(--text-primary);
   animation: art-style-morph 10s infinite;
 }
