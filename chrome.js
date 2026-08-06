@@ -244,7 +244,7 @@
     var swirlK = reducedMotion ? 0.006 : 0.014;
     var repelK = 0.9;
     var damping = 0.86;
-    var baseSpacing = 92;
+    var baseSpacing = 170;
 
     function drawGas(t) {
       var idleFor = t - lastMoveTime;
