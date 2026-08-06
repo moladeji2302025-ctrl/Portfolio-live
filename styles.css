@@ -17,9 +17,6 @@
   --white: #12141b;
   --nav-height: 82px;
   --nav-height-mobile: 72px;
-  /* Same hue sweep and lightness as the particle system's stroke color in
-     chrome.js (HUE_START 200 / HUE_SPAN 170, light-theme lightness 40%). */
-  --brush-gradient: linear-gradient(90deg, hsl(200 82% 40%), hsl(285 82% 40%), hsl(370 82% 40%));
 }
 
 :root[data-theme='dark'] {
@@ -37,7 +34,6 @@
   --header-bg: rgba(5, 5, 5, 0.82);
   --overlay-bg: rgba(5, 5, 5, 0.97);
   --white: #ffffff;
-  --brush-gradient: linear-gradient(90deg, hsl(200 82% 66%), hsl(285 82% 66%), hsl(370 82% 66%));
 }
 
 :root[data-theme='light'] {
@@ -55,7 +51,6 @@
   --header-bg: rgba(250, 249, 251, 0.82);
   --overlay-bg: rgba(250, 249, 251, 0.97);
   --white: #12141b;
-  --brush-gradient: linear-gradient(90deg, hsl(200 82% 40%), hsl(285 82% 40%), hsl(370 82% 40%));
 }
 
 body {
@@ -332,30 +327,12 @@ a {
 .hero-line .brush-word {
   position: relative;
   display: inline-block;
-  color: var(--accent);
-  background: var(--brush-gradient);
-  background-size: 260% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: brush-flow var(--brush-speed, 9s) ease-in-out infinite;
+  color: hsl(0 85% 42%);
+  animation: roygbiv-light 7s steps(1, jump-end) infinite;
 }
 
-/* Gentle back-and-forth pan rather than a hard loop reset, so the gradient
-   reads as fluid drifting rather than a repeating slide. Speed is driven by
-   --brush-speed (set in chrome.js from cursor proximity) - this keyframe
-   shape stays constant, only its duration changes. */
-@keyframes brush-flow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-line .brush-word {
-    animation: none;
-    background-position: 30% 50%;
-  }
+:root[data-theme='dark'] .hero-line .brush-word {
+  animation: roygbiv-dark 7s steps(1, jump-end) infinite;
 }
 
 /* The full stop after "Art", but alive: a small ball that bounces in place
@@ -372,16 +349,16 @@ a {
   border-radius: 50%;
   vertical-align: baseline;
   transform-origin: center bottom;
-  background-color: hsl(200 82% 40%);
+  background-color: hsl(0 85% 42%);
   animation:
     ball-bounce 1s infinite,
-    ball-color-light 6s ease-in-out infinite;
+    roygbiv-light-bg 7s steps(1, jump-end) infinite;
 }
 
 :root[data-theme='dark'] .hero-line .bounce-dot {
   animation:
     ball-bounce 1s infinite,
-    ball-color-dark 6s ease-in-out infinite;
+    roygbiv-dark-bg 7s steps(1, jump-end) infinite;
 }
 
 @keyframes ball-bounce {
@@ -406,31 +383,60 @@ a {
   }
 }
 
-/* One hue per bounce, six bounces per cycle, each shift eased across the
-   flight rather than snapping at contact - it lands on the new color right
-   as it lands on the ground. Hue sweep matches the particle system's
-   (200 -> 370); lightness matches the brush-word gradient per theme. */
-@keyframes ball-color-light {
-  0%      { background-color: hsl(200 82% 40%); }
-  16.667% { background-color: hsl(228 82% 40%); }
-  33.333% { background-color: hsl(256 82% 40%); }
-  50%     { background-color: hsl(284 82% 40%); }
-  66.667% { background-color: hsl(312 82% 40%); }
-  83.333% { background-color: hsl(340 82% 40%); }
-  100%    { background-color: hsl(200 82% 40%); }
+/* Straight ROYGBIV, one full color per bounce (7 bounces per 7s loop) -
+   hard cuts (steps, not eased blending) right on each ground hit, since
+   the whole point is that every landing is an unmistakable, fully-switched
+   new color, not a gradual crossfade toward one. "Art" and the ball share
+   identical stops so they always flip in lockstep. */
+@keyframes roygbiv-light {
+  0%      { color: hsl(0 85% 42%); }   /* red */
+  14.286% { color: hsl(28 90% 42%); }  /* orange */
+  28.571% { color: hsl(50 90% 38%); }  /* yellow */
+  42.857% { color: hsl(130 60% 32%); } /* green */
+  57.143% { color: hsl(220 80% 46%); } /* blue */
+  71.429% { color: hsl(265 60% 42%); } /* indigo */
+  85.714% { color: hsl(292 65% 42%); } /* violet */
+  100%    { color: hsl(0 85% 42%); }
 }
 
-@keyframes ball-color-dark {
-  0%      { background-color: hsl(200 82% 66%); }
-  16.667% { background-color: hsl(228 82% 66%); }
-  33.333% { background-color: hsl(256 82% 66%); }
-  50%     { background-color: hsl(284 82% 66%); }
-  66.667% { background-color: hsl(312 82% 66%); }
-  83.333% { background-color: hsl(340 82% 66%); }
-  100%    { background-color: hsl(200 82% 66%); }
+@keyframes roygbiv-dark {
+  0%      { color: hsl(0 90% 62%); }
+  14.286% { color: hsl(28 95% 60%); }
+  28.571% { color: hsl(50 95% 58%); }
+  42.857% { color: hsl(130 65% 58%); }
+  57.143% { color: hsl(220 90% 68%); }
+  71.429% { color: hsl(265 75% 68%); }
+  85.714% { color: hsl(292 75% 68%); }
+  100%    { color: hsl(0 90% 62%); }
+}
+
+@keyframes roygbiv-light-bg {
+  0%      { background-color: hsl(0 85% 42%); }
+  14.286% { background-color: hsl(28 90% 42%); }
+  28.571% { background-color: hsl(50 90% 38%); }
+  42.857% { background-color: hsl(130 60% 32%); }
+  57.143% { background-color: hsl(220 80% 46%); }
+  71.429% { background-color: hsl(265 60% 42%); }
+  85.714% { background-color: hsl(292 65% 42%); }
+  100%    { background-color: hsl(0 85% 42%); }
+}
+
+@keyframes roygbiv-dark-bg {
+  0%      { background-color: hsl(0 90% 62%); }
+  14.286% { background-color: hsl(28 95% 60%); }
+  28.571% { background-color: hsl(50 95% 58%); }
+  42.857% { background-color: hsl(130 65% 58%); }
+  57.143% { background-color: hsl(220 90% 68%); }
+  71.429% { background-color: hsl(265 75% 68%); }
+  85.714% { background-color: hsl(292 75% 68%); }
+  100%    { background-color: hsl(0 90% 62%); }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .hero-line .brush-word {
+    animation: none;
+    color: var(--accent);
+  }
   .hero-line .bounce-dot {
     animation: none;
     background-color: var(--accent);
