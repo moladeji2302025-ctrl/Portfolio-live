@@ -1,39 +1,22 @@
 :root {
-  color-scheme: dark;
-  --bg: #06080f;
-  --bg-alt: rgba(11, 14, 24, 0.86);
-  --surface: rgba(255, 255, 255, 0.035);
-  --border: rgba(255, 255, 255, 0.09);
-  --text-primary: #f3f5f9;
-  --text-muted: #838ca0;
-  --accent: #4fd8ff;
-  --accent-glow: rgba(79, 216, 255, 0.18);
-  --signal: #8b6bff;
-  --danger: #ff8f8f;
-  --header-bg: rgba(6, 8, 15, 0.82);
-  --overlay-bg: rgba(6, 8, 15, 0.97);
-  --white: #ffffff;
+  /* Light is the site's default appearance regardless of OS preference -
+     dark is opt-in only, applied below via [data-theme='dark']. */
+  color-scheme: light;
+  --bg: #faf9fb;
+  --bg-alt: rgba(241, 240, 244, 0.86);
+  --surface: rgba(10, 12, 20, 0.03);
+  --border: rgba(10, 12, 20, 0.09);
+  --text-primary: #12141b;
+  --text-muted: #666f80;
+  --accent: #0091b3;
+  --accent-glow: rgba(0, 145, 179, 0.14);
+  --signal: #6c4fe0;
+  --danger: #d1435c;
+  --header-bg: rgba(250, 249, 251, 0.82);
+  --overlay-bg: rgba(250, 249, 251, 0.97);
+  --white: #12141b;
   --nav-height: 82px;
   --nav-height-mobile: 72px;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color-scheme: light;
-    --bg: #faf9fb;
-    --bg-alt: rgba(241, 240, 244, 0.86);
-    --surface: rgba(10, 12, 20, 0.03);
-    --border: rgba(10, 12, 20, 0.09);
-    --text-primary: #12141b;
-    --text-muted: #666f80;
-    --accent: #0091b3;
-    --accent-glow: rgba(0, 145, 179, 0.14);
-    --signal: #6c4fe0;
-    --danger: #d1435c;
-    --header-bg: rgba(250, 249, 251, 0.82);
-    --overlay-bg: rgba(250, 249, 251, 0.97);
-    --white: #12141b;
-  }
 }
 
 :root[data-theme='dark'] {

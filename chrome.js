@@ -13,8 +13,10 @@
   if (storedTheme) root.setAttribute('data-theme', storedTheme);
 
   function isLight() {
+    /* Light is the site's default regardless of OS preference; dark only
+       applies once someone explicitly switches to it via the toggle. */
     if (root.hasAttribute('data-theme')) return root.getAttribute('data-theme') === 'light';
-    return window.matchMedia('(prefers-color-scheme: light)').matches;
+    return true;
   }
   function syncThemeSwitch() {
     if (!themeSwitch) return;
