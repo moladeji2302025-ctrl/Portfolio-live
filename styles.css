@@ -334,9 +334,28 @@ a {
   display: inline-block;
   color: var(--accent);
   background: var(--brush-gradient);
+  background-size: 260% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  animation: brush-flow var(--brush-speed, 9s) ease-in-out infinite;
+}
+
+/* Gentle back-and-forth pan rather than a hard loop reset, so the gradient
+   reads as fluid drifting rather than a repeating slide. Speed is driven by
+   --brush-speed (set in chrome.js from cursor proximity) - this keyframe
+   shape stays constant, only its duration changes. */
+@keyframes brush-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-line .brush-word {
+    animation: none;
+    background-position: 30% 50%;
+  }
 }
 
 .hero-line .brush-icon {

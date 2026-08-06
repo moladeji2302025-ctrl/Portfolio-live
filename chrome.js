@@ -248,6 +248,27 @@
       return { x: (best.x - px) * strength, y: (best.y - py) * strength };
     }
 
+    var brushWords = document.querySelectorAll('.brush-word');
+
+    /* The hero word's gradient always drifts gently on its own (the CSS
+       animation), but speeds up the closer the cursor gets to it and peaks
+       while directly hovering - a continuous proximity response like the
+       button magnetism above, not just an on/off hover flag. */
+    function updateBrushWords() {
+      if (reducedMotion) return;
+      for (var w = 0; w < brushWords.length; w++) {
+        var el = brushWords[w];
+        var r = el.getBoundingClientRect();
+        var ex = r.left + r.width / 2;
+        var ey = r.top + r.height / 2;
+        var edgeDist = Math.max(0, Math.hypot(cx - ex, cy - ey) - Math.max(r.width, r.height) / 2);
+        var range = 260;
+        var t = Math.max(0, 1 - edgeDist / range);
+        var duration = 9 - t * t * 7.2;
+        el.style.setProperty('--brush-speed', duration.toFixed(2) + 's');
+      }
+    }
+
     (function tickCursor() {
       var ringEase = reducedMotion ? 1 : 0.16;
       var dotEase = reducedMotion ? 1 : 0.4;
@@ -262,6 +283,7 @@
         cursorDot.style.left = dotX + 'px';
         cursorDot.style.top = dotY + 'px';
       }
+      updateBrushWords();
       requestAnimationFrame(tickCursor);
     })();
 
