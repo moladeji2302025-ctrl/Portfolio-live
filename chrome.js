@@ -7,12 +7,15 @@
   var root = document.documentElement;
 
   /* ---------------- theme ---------------- */
-  /* Which theme this load gets is randomized fresh every time - an inline
-     script earlier in <body> already rolled it and set data-theme before
-     first paint (so there's no flash), same trick the page-loader uses for
-     mo-nav. This just reads that pick and wires up manual toggling for the
-     rest of this page view; toggling here isn't persisted, since the whole
-     point is that a reload rolls again rather than remembering. */
+  /* Theme alternates every load rather than being randomized or remembered
+     as a fixed preference - an inline script earlier in <body> already
+     flipped it against localStorage's 'mo-theme-cycle' and set data-theme
+     before first paint (so there's no flash), same trick the page-loader
+     uses for mo-nav. This just reads that pick and wires up manual
+     toggling for the rest of this page view. A manual toggle also updates
+     'mo-theme-cycle', so the next reload's flip continues from whatever
+     the user actually left it on rather than reverting to the automatic
+     sequence. */
   var themeSwitch = document.getElementById('theme-switch');
 
   function isLight() {
@@ -28,6 +31,7 @@
     themeSwitch.addEventListener('click', function () {
       var next = isLight() ? 'dark' : 'light';
       root.setAttribute('data-theme', next);
+      try { localStorage.setItem('mo-theme-cycle', next); } catch (e) {}
       syncThemeSwitch();
       playToggle();
       if (window.__refreshGasColors) window.__refreshGasColors();
