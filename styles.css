@@ -306,7 +306,8 @@ a {
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: 1fr 0.9fr;
+  grid-template-columns: 1fr;
+  max-width: 760px;
   gap: 2rem;
   align-items: center;
   padding: 4rem 0;
@@ -458,15 +459,6 @@ a {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-}
-
-.hero-media {
-  justify-self: end;
-  width: min(480px, 92%);
-  border: 1px solid var(--border);
-  border-radius: 1rem;
-  overflow: hidden;
-  box-shadow: 0 28px 50px rgba(0, 0, 0, 0.4);
 }
 
 .hero-side {
@@ -1496,10 +1488,6 @@ a {
     display: none;
   }
 
-  .hero-media {
-    justify-self: start;
-  }
-
   .stat {
     border-right: 0;
     border-bottom: 1px solid var(--border);
@@ -1539,10 +1527,6 @@ a {
   .hero-actions .btn {
     width: 100%;
     justify-content: center;
-  }
-
-  .hero-media {
-    width: 100%;
   }
 
   .nav-wrap {
