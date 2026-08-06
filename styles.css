@@ -97,8 +97,8 @@ a {
 
 .section-alt {
   background: var(--bg-alt);
-  backdrop-filter: blur(13px);
-  -webkit-backdrop-filter: blur(13px);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
 }
@@ -633,8 +633,8 @@ a {
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   background: var(--bg-alt);
-  backdrop-filter: blur(13px);
-  -webkit-backdrop-filter: blur(13px);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .stats-grid {
@@ -703,8 +703,8 @@ a {
   padding: 3rem 1rem;
   border: 1px solid var(--border);
   background: var(--bg-alt);
-  backdrop-filter: blur(13px);
-  -webkit-backdrop-filter: blur(13px);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .newsletter {
@@ -1197,8 +1197,8 @@ a {
   min-height: 54vh;
   align-items: end;
   background: var(--bg-alt);
-  backdrop-filter: blur(13px);
-  -webkit-backdrop-filter: blur(13px);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--border);
 }
 
