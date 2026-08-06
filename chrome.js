@@ -223,17 +223,20 @@
     window.__refreshGasColors = refreshGasColors;
     refreshGasColors();
 
+    var spawnGap = reducedMotion ? 60 : 30;
+    var motionScale = reducedMotion ? 0.35 : 1;
+
     window.addEventListener('pointermove', function (e) {
       mx = e.clientX;
       my = e.clientY;
       var now = performance.now();
-      if (now - lastSpawn > 30 && particles.length < 110 && !reducedMotion) {
+      if (now - lastSpawn > spawnGap && particles.length < 110) {
         lastSpawn = now;
         particles.push({
           x: mx + (Math.random() - 0.5) * 14,
           y: my + (Math.random() - 0.5) * 14,
-          vx: (Math.random() - 0.5) * 0.5,
-          vy: (Math.random() - 0.5) * 0.5 - 0.15,
+          vx: (Math.random() - 0.5) * 0.5 * motionScale,
+          vy: ((Math.random() - 0.5) * 0.5 - 0.15) * motionScale,
           size: 24 + Math.random() * 30,
           born: now,
           life: 1600 + Math.random() * 900,
@@ -259,7 +262,7 @@
         p.vy *= 0.985;
 
         var fade = lifeT < 0.12 ? lifeT / 0.12 : 1 - (lifeT - 0.12) / 0.88;
-        var alpha = Math.max(0, fade) * 0.24;
+        var alpha = Math.max(0, fade) * 0.34;
         var size = p.size * (1 + lifeT * 1.6);
 
         var r = Math.round(ionRGB[0] + (signalRGB[0] - ionRGB[0]) * p.mix);
@@ -282,8 +285,6 @@
       }
     }
 
-    if (!reducedMotion) {
-      requestAnimationFrame(function loop(t) { drawGas(t); requestAnimationFrame(loop); });
-    }
+    requestAnimationFrame(function loop(t) { drawGas(t); requestAnimationFrame(loop); });
   }
 })();
