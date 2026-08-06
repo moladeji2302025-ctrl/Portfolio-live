@@ -1265,27 +1265,6 @@ const initContactForm = () => {
   });
 };
 
-const initPageTransition = () => {
-  const wipe = document.querySelector('.page-wipe');
-  if (!wipe) return;
-
-  document.querySelectorAll('a[href]').forEach((link) => {
-    const href = link.getAttribute('href') || '';
-    const isPageLink = href.endsWith('.html') || href.includes('.html?') || href.startsWith('./');
-    const isHash = href.startsWith('#') || href.includes('#');
-
-    if (!isPageLink || isHash || link.target === '_blank') return;
-
-    link.addEventListener('click', (event) => {
-      event.preventDefault();
-      wipe.classList.add('active');
-      setTimeout(() => {
-        window.location.href = href;
-      }, 450);
-    });
-  });
-};
-
 const setCurrentYear = () => {
   if (yearNode) {
     yearNode.textContent = String(new Date().getFullYear());
@@ -1303,7 +1282,6 @@ const initApp = () => {
   initTestimonials();
   initFaq();
   initContactForm();
-  initPageTransition();
   setCurrentYear();
 };
 

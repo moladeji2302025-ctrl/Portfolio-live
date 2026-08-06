@@ -1136,15 +1136,11 @@ a {
   margin: 1.6rem 0;
 }
 
-.lightbox,
-.page-wipe {
+.lightbox {
   position: fixed;
   inset: 0;
   opacity: 0;
   pointer-events: none;
-}
-
-.lightbox {
   z-index: 80;
   background: rgba(0, 0, 0, 0.9);
   display: grid;
@@ -1180,14 +1176,23 @@ a {
   color: var(--white);
 }
 
-.page-wipe {
-  z-index: 95;
-  background: linear-gradient(90deg, var(--bg), var(--accent), var(--bg));
-  transform: translateX(-100%);
+.page-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: var(--bg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.45s ease, background 0.5s ease;
 }
 
-.page-wipe.active {
-  animation: wipe 0.9s ease forwards;
+.page-loader.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.page-loader.is-instant {
+  transition: background 0.5s ease;
 }
 
 .detail-hero,
@@ -1286,11 +1291,6 @@ a {
   50% { transform: translateY(-10px); }
 }
 
-@keyframes wipe {
-  0% { transform: translateX(-100%); opacity: 1; }
-  50% { transform: translateX(0); opacity: 1; }
-  100% { transform: translateX(100%); opacity: 0; }
-}
 
 @media (max-width: 1024px) {
   .hero-inner,

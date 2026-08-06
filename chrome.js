@@ -107,6 +107,68 @@
     syncSoundIcon();
   }
 
+  /* ---------------- page transition ---------------- */
+  /* Replaces the old light-streak wipe. Clicking an internal page link fades
+     the screen to blank and pulls the particle swarm to the exact center of
+     the viewport instead of the cursor, where it keeps pulsing (the existing
+     wave motion does that on its own) while the browser loads the next page.
+     A tiny inline script in each page's <head> checks sessionStorage and, if
+     we're arriving from one of these clicks, marks the loader active before
+     the very first paint - so there's no flash of the destination page
+     before the blank cover appears. Once that page has actually finished
+     loading (and at least a minimum show time has passed, so it never just
+     flickers), the swarm bursts outward from center and the cover fades. */
+  var pageLoader = document.getElementById('pageLoader');
+  var loaderCenter = null;
+  var triggerBurst = function () {};
+
+  function centerOfScreen() {
+    return { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+  }
+
+  if (pageLoader) {
+    (function () {
+      var MIN_SHOW = 650;
+      var OUT_DELAY = 480;
+
+      function revealPage() {
+        triggerBurst();
+        setTimeout(function () {
+          pageLoader.classList.remove('is-instant');
+          pageLoader.classList.remove('is-active');
+          loaderCenter = null;
+        }, 160);
+      }
+
+      if (pageLoader.classList.contains('is-active')) {
+        loaderCenter = centerOfScreen();
+        var arrivedAt = performance.now();
+        var doReveal = function () {
+          setTimeout(revealPage, Math.max(0, MIN_SHOW - (performance.now() - arrivedAt)));
+        };
+        if (document.readyState === 'complete') doReveal();
+        else window.addEventListener('load', doReveal);
+      }
+
+      document.addEventListener('click', function (event) {
+        var link = event.target.closest('a[href]');
+        if (!link) return;
+        var href = link.getAttribute('href') || '';
+        var isPageLink = href.endsWith('.html') || href.indexOf('.html?') > -1 || href.indexOf('./') === 0;
+        var isHash = href.indexOf('#') > -1;
+        if (!isPageLink || isHash || link.target === '_blank') return;
+
+        event.preventDefault();
+        loaderCenter = centerOfScreen();
+        pageLoader.classList.add('is-active');
+        try { sessionStorage.setItem('mo-nav', '1'); } catch (e) {}
+        setTimeout(function () {
+          window.location.href = href;
+        }, OUT_DELAY);
+      });
+    })();
+  }
+
   /* ---------------- custom cursor (dot + ring, magnetic) ---------------- */
   var fine = window.matchMedia('(pointer: fine)').matches;
   var cursorRing = document.querySelector('.custom-cursor');
@@ -232,22 +294,26 @@
       lastMoveTime = performance.now();
     }, { passive: true });
 
-    /* A click sends every particle flying outward from wherever it stood,
-       then the standing forces below pull the swarm back together on
-       their own - burst decays via the same damping as everything else. */
+    /* A click (or a page-transition reveal) sends every particle flying
+       outward from wherever the swarm was centered, then the standing
+       forces below pull it back together on their own - the burst decays
+       via the same damping as everything else. */
     var burstAt = -99999;
-    document.addEventListener('click', function () {
+    function burstNow() {
+      var origin = loaderCenter || { x: cx, y: cy };
       burstAt = performance.now();
       for (var b = 0; b < particles.length; b++) {
         var bp = particles[b];
-        var bdx = bp.x - cx;
-        var bdy = bp.y - cy;
+        var bdx = bp.x - origin.x;
+        var bdy = bp.y - origin.y;
         var bdist = Math.sqrt(bdx * bdx + bdy * bdy) || 0.001;
         var kick = 18 + Math.random() * 9;
         bp.vx += (bdx / bdist) * kick;
         bp.vy += (bdy / bdist) * kick;
       }
-    });
+    }
+    document.addEventListener('click', burstNow);
+    triggerBurst = burstNow;
 
     var hoverBoost = 0;
 
@@ -272,10 +338,14 @@
       var burstEnergy = sinceBurst >= 0 ? (1 - burstT) * (1 - burstT) : 0;
 
       /* A traveling ripple, not a shared on/off pulse: phase depends on each
-         particle's own distance from the cursor, so the wave visibly moves
-         outward through the swarm like a shockwave, and clicking spikes its
-         amplitude for one big pulse before it settles back to ambient. */
-      var waveAmp = 0.3 + burstEnergy * 3.2;
+         particle's own distance from the target, so the wave visibly moves
+         outward through the swarm like a shockwave, and clicking (or a page
+         transition loading) spikes its amplitude for one big pulse before
+         it settles back to ambient. */
+      var target = loaderCenter || { x: cx, y: cy };
+      var tx = target.x;
+      var ty = target.y;
+      var waveAmp = (0.3 + burstEnergy * 3.2) * (loaderCenter ? 1.5 : 1);
       var spacing = baseSpacing * (1 + hoverBoost * 0.7);
       var spacing2 = spacing * spacing;
 
@@ -286,8 +356,8 @@
 
       for (var i = 0; i < particles.length; i++) {
         var p = particles[i];
-        var dx = cx - p.x;
-        var dy = cy - p.y;
+        var dx = tx - p.x;
+        var dy = ty - p.y;
         var dist = Math.sqrt(dx * dx + dy * dy) || 0.001;
         var wave = Math.sin(t * 0.0032 - dist * 0.045);
 
@@ -318,8 +388,8 @@
         p.y += p.vy;
 
         var speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
-        var angle = speed > 0.02 ? Math.atan2(p.vy, p.vx) : Math.atan2(cy - p.y, cx - p.x) + Math.PI / 2;
-        var hueAngle = Math.atan2(p.y - cy, p.x - cx);
+        var angle = speed > 0.02 ? Math.atan2(p.vy, p.vx) : Math.atan2(ty - p.y, tx - p.x) + Math.PI / 2;
+        var hueAngle = Math.atan2(p.y - ty, p.x - tx);
         var hue = HUE_START + ((hueAngle + Math.PI) / (Math.PI * 2)) * HUE_SPAN;
         var glow = 0.5 + wave * 0.25 + burstEnergy * 0.9;
         var alpha = (0.3 + Math.min(0.45, speed * 0.9) + glow * 0.2) * (reducedMotion ? 0.75 : 1);
