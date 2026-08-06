@@ -292,7 +292,6 @@ a {
   min-height: calc(100vh - var(--nav-height));
   position: relative;
   overflow: hidden;
-  --hero-content-width: min(1100px, calc(100% - 3rem));
 }
 
 .hero-bg {
@@ -301,26 +300,18 @@ a {
   background: none;
 }
 
-/* Absolute + translate centering rather than flex/grid auto-margins - it
-   centers purely on this element's own final size relative to .hero,
-   completely sidestepping flex's content-based automatic minimum width
-   (the thing that broke the previous flex-based attempt: a single long
-   word like "IMAGINATION" silently grows a flex item past its max-width
-   unless min-width is overridden, and that grown, unpredictable size is
-   what was throwing the centering off). */
+/* Plain left-aligned block again - .container (already on this element)
+   handles the outer 1280px page-width centering the same way every other
+   section uses, and the text column itself just sits at that box's left
+   edge rather than trying to center a variable-width box on its own. */
 .hero-inner {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  position: relative;
   z-index: 2;
-  display: grid;
-  grid-template-columns: 1fr;
-  width: var(--hero-content-width);
-  gap: 2rem;
-  align-items: center;
-  text-align: center;
   padding: 4rem 0;
+}
+
+.hero-inner > div {
+  max-width: 700px;
 }
 
 .hero-line {
@@ -462,26 +453,18 @@ a {
 .hero-copy {
   color: var(--text-muted);
   max-width: 540px;
-  margin: 1.2rem auto 2rem;
+  margin: 1.2rem 0 2rem;
 }
 
 .hero-actions {
   display: flex;
-  justify-content: center;
   flex-wrap: wrap;
   gap: 1rem;
 }
 
-/* Anchored to the centered content column's own left edge (with a fixed
-   gap) rather than the section's fixed page edge, so it moves together
-   with .hero-inner instead of sitting independently - on wide viewports
-   that would otherwise leave it stranded out in the margin, unrelated to
-   where the centered text actually is. max() keeps its old edge-pinned
-   spacing as a floor on narrower viewports where the content column is
-   already close to full width. */
 .hero-side {
   position: absolute;
-  left: max(1.4rem, calc(50% - var(--hero-content-width) / 2 - 3.5rem));
+  left: 1.4rem;
   top: 50%;
   transform: translateY(-50%);
   z-index: 3;
@@ -1249,7 +1232,7 @@ a {
   width: 130px;
   height: 0;
   border-top: 1.5px dashed color-mix(in srgb, var(--accent) 55%, transparent);
-  margin: 1.6rem auto;
+  margin: 1.6rem 0;
 }
 
 .lightbox {
@@ -1409,7 +1392,6 @@ a {
 
 
 @media (max-width: 1024px) {
-  .hero-inner,
   .detail-layout {
     grid-template-columns: 1fr;
   }
@@ -1489,7 +1471,6 @@ a {
     min-height: calc(100vh - var(--nav-height-mobile));
   }
 
-  .hero-inner,
   .about-grid,
   .process-grid,
   .faq-grid,
