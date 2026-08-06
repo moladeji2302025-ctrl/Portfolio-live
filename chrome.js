@@ -126,6 +126,15 @@
     return { x: window.innerWidth / 2, y: window.innerHeight / 2 };
   }
 
+  /* The particle canvas normally sits behind all page content (z-index -1),
+     but the loader cover sits above everything (150) - without this, the
+     opaque cover would hide the swarm along with the real page underneath
+     it. Bring the canvas in front of the cover only while transitioning. */
+  function setCanvasFront(active) {
+    var c = document.getElementById('gas-canvas');
+    if (c) c.style.zIndex = active ? '151' : '';
+  }
+
   if (pageLoader) {
     (function () {
       var FAST_LOAD_THRESHOLD = 3000;
@@ -138,11 +147,13 @@
           pageLoader.classList.remove('is-instant');
           pageLoader.classList.remove('is-active');
           loaderCenter = null;
+          setCanvasFront(false);
         }, 160);
       }
 
       if (pageLoader.classList.contains('is-active')) {
         loaderCenter = centerOfScreen();
+        setCanvasFront(true);
         var arrivedAt = performance.now();
         var doReveal = function () {
           /* A load under 3s still holds the loader to a full 5s so it never
@@ -166,6 +177,7 @@
 
         event.preventDefault();
         loaderCenter = centerOfScreen();
+        setCanvasFront(true);
         pageLoader.classList.add('is-active');
         try { sessionStorage.setItem('mo-nav', '1'); } catch (e) {}
         setTimeout(function () {
