@@ -112,43 +112,42 @@
   function playHover() { chime(880, 0.32, 0.016, 0, 2); }
   function playSelect() { chime(659, 0.42, 0.04, 0, 1.5); chime(988, 0.52, 0.028, 0.07, 1.5); }
   function playToggle() { chime(523, 0.48, 0.036, 0, 2); }
-  /* A water drop: a quick downward pitch-bend "plip" (the drop itself)
-     followed by a much quieter, longer sine underneath that keeps
-     wobbling as it decays (the ripple spreading out after it lands),
-     both feeding the shared reverb so it dissolves into the same space
-     as every other sound instead of stopping short. */
-  function playDrop() {
+  /* A soft, static-pitch tap for empty space - same gentle sine-plus-
+     overtone character as the rest of the chime family, just its own
+     note, rather than the fast pitch-sweep "laser zap" the water-drop
+     version had (a quick downward frequency ramp reads as a sci-fi
+     blaster, not a soothing UI sound, no matter how quiet it's mixed). */
+  function playTap() { chime(392, 0.5, 0.03, 0, 2); }
+
+  /* A quiet, ever-continuing tune, one note per click anywhere on the
+     site (layered under whatever click sound also plays) - a warm
+     pentatonic scale, so any order of notes still sounds musical, with
+     each step wandering up or down by a small random interval rather
+     than marching straight up or down the scale, so it reads as a loose
+     melody instead of a scale exercise. Runs well under the other
+     sounds in volume so it stays a soft ambient thread, not a jingle. */
+  var TUNE_SCALE = [392.00, 440.00, 523.25, 587.33, 659.25, 783.99];
+  var tuneIndex = 2;
+  function playTuneNote() {
     if (!soundOn) return;
     var ctx = ensureAudio();
     if (!ctx) return;
+    var step = [-2, -1, -1, 1, 1, 2][Math.floor(Math.random() * 6)];
+    tuneIndex = Math.max(0, Math.min(TUNE_SCALE.length - 1, tuneIndex + step));
+    var freq = TUNE_SCALE[tuneIndex];
     var t0 = ctx.currentTime;
-
-    var plip = ctx.createOscillator();
-    var plipGain = ctx.createGain();
-    plip.type = 'sine';
-    plip.frequency.setValueAtTime(1100, t0);
-    plip.frequency.exponentialRampToValueAtTime(340, t0 + 0.16);
-    plipGain.gain.setValueAtTime(0.0001, t0);
-    plipGain.gain.linearRampToValueAtTime(0.05, t0 + 0.012);
-    plipGain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.42);
-    plip.connect(plipGain);
-    plipGain.connect(ctx.destination);
-    plipGain.connect(reverb);
-    plip.start(t0);
-    plip.stop(t0 + 0.75);
-
-    var ripple = ctx.createOscillator();
-    var rippleGain = ctx.createGain();
-    ripple.type = 'sine';
-    ripple.frequency.setValueAtTime(420, t0 + 0.05);
-    ripple.frequency.exponentialRampToValueAtTime(300, t0 + 1.4);
-    rippleGain.gain.setValueAtTime(0.0001, t0 + 0.05);
-    rippleGain.gain.linearRampToValueAtTime(0.012, t0 + 0.12);
-    rippleGain.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.6);
-    ripple.connect(rippleGain);
-    rippleGain.connect(reverb);
-    ripple.start(t0 + 0.05);
-    ripple.stop(t0 + 1.9);
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, t0);
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.linearRampToValueAtTime(0.014, t0 + 0.09);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.1);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    gain.connect(reverb);
+    osc.start(t0);
+    osc.stop(t0 + 1.4);
   }
 
   document.addEventListener('pointerdown', function unlock() {
@@ -161,15 +160,16 @@
     if (e.target.closest(SOUND_HOVER_SELECTOR)) playHover();
   });
   /* Anything actually interactive gets its existing click sound; a click
-     that lands on genuinely empty space gets a water drop instead, like
-     dropping a stone into the page. */
+     that lands on genuinely empty space gets the soft tap instead. Either
+     way, every click also advances the quiet background tune one note. */
   var SOUND_INTERACTIVE_SELECTOR = 'a, button, input, textarea, select, [role="button"], .tile, .filter-btn, .faq-trigger, .arrow-btn, .dot, .project-card, .theme-switch, #sound-toggle, #mobile-menu-toggle';
   document.addEventListener('click', function (e) {
     if (e.target.closest('button, .project-card-link, .filter-btn, a.nav-cta, a.btn')) {
       playSelect();
     } else if (!e.target.closest(SOUND_INTERACTIVE_SELECTOR)) {
-      playDrop();
+      playTap();
     }
+    playTuneNote();
   });
 
   var soundToggle = document.getElementById('sound-toggle');
