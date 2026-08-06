@@ -593,12 +593,19 @@
         var glow = 0.5 + wave * 0.25 + burstEnergy * 0.9;
         var alpha = (0.3 + Math.min(0.45, speed * 0.9) + glow * 0.2) * (reducedMotion ? 0.75 : 1);
 
+        /* Particles nearest the cursor/target shrink smoothly the closer
+           they get, growing back to full size past this radius - a soft
+           dynamic falloff rather than a fixed small-core look, since dist
+           changes constantly as the swarm moves. */
+        var proximityT = Math.max(0, 1 - dist / 130);
+        var sizeMult = 1 - proximityT * 0.62;
+
         ctx.save();
         ctx.translate(p.x, p.y);
         ctx.rotate(angle);
         ctx.strokeStyle = 'hsla(' + hue + ', 82%, 66%, ' + alpha + ')';
-        ctx.lineWidth = p.width * (1 + burstEnergy * 1.3);
-        var len = p.len * (1 + burstEnergy * 2.2);
+        ctx.lineWidth = p.width * (1 + burstEnergy * 1.3) * sizeMult;
+        var len = p.len * (1 + burstEnergy * 2.2) * sizeMult;
         ctx.beginPath();
         ctx.moveTo(-len / 2, 0);
         ctx.lineTo(len / 2, 0);
