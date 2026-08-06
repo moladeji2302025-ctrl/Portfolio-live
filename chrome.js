@@ -463,8 +463,11 @@
         var loaderBlur = (0.5 + Math.sin(t * 0.0023) * 0.5) * 0.9;
         canvas.style.filter = loaderBlur > 0.05 ? 'blur(' + loaderBlur.toFixed(1) + 'px)' : 'none';
       } else {
+        /* Oscillates between a blurred floor and a blurrier peak - never
+           back down to clear - so the idle pulse reads as breathing, not
+           as clearing up and reblurring. */
         var blurPulse = 0.5 + pulseSin * 0.5;
-        var blurAmount = idleT * 1.2 * blurPulse;
+        var blurAmount = idleT * (0.6 + blurPulse * 1.0);
         canvas.style.filter = blurAmount > 0.05 ? 'blur(' + blurAmount.toFixed(1) + 'px)' : 'none';
       }
 
