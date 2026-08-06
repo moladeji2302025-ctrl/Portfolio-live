@@ -310,10 +310,6 @@ a {
   padding: 4rem 0;
 }
 
-.hero-inner > div {
-  max-width: 700px;
-}
-
 .hero-line {
   font-family: 'Michroma', sans-serif;
   font-size: clamp(3rem, 9vw, 8rem);
