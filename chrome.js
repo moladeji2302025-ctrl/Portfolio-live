@@ -593,12 +593,14 @@
         var glow = 0.5 + wave * 0.25 + burstEnergy * 0.9;
         var alpha = (0.3 + Math.min(0.45, speed * 0.9) + glow * 0.2) * (reducedMotion ? 0.75 : 1);
 
-        /* Particles nearest the cursor/target shrink smoothly the closer
-           they get, growing back to full size past this radius - a soft
-           dynamic falloff rather than a fixed small-core look, since dist
-           changes constantly as the swarm moves. */
-        var proximityT = Math.max(0, 1 - dist / 130);
-        var sizeMult = 1 - proximityT * 0.62;
+        /* Full size only lives in a middle "sweet spot" band - particles
+           shrink smoothly both as they close in on the cursor/target and as
+           they drift far out past it, since dist changes constantly as the
+           swarm moves either direction. */
+        var nearT = Math.max(0, 1 - dist / 130);
+        var farT = Math.min(1, Math.max(0, (dist - 340) / 300));
+        var shrinkT = Math.max(nearT, farT);
+        var sizeMult = 1 - shrinkT * 0.9;
 
         ctx.save();
         ctx.translate(p.x, p.y);
