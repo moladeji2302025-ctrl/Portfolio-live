@@ -403,10 +403,10 @@
 
     var hoverBoost = 0;
 
-    var pullK = reducedMotion ? 0.02 : 0.05;
-    var swirlK = reducedMotion ? 0.006 : 0.014;
+    var pullK = reducedMotion ? 0.03 : 0.078;
+    var swirlK = reducedMotion ? 0.006 : 0.012;
     var repelK = 0.9;
-    var damping = 0.86;
+    var damping = 0.82;
     var baseSpacing = 260;
     var loaderSpacing = baseSpacing * 2.1;
 
