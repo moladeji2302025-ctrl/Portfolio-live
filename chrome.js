@@ -194,11 +194,12 @@
     /* A compact sphere of particles, not a page-wide field: every particle
        has a fixed spot on a rotating 3D shell. The whole shell spins as one
        coordinated unit (a single rotation applied to everyone, so nothing
-       moves independently), pulses gently, and its center eases toward the
-       cursor with a lag - a flock following a point, not particles snapping
-       to it. */
+       moves independently) and pulses as one unit too - the sphere's own
+       radius breathes in and out, not each particle on its own timer. The
+       center is locked exactly to the cursor position, every frame, so the
+       sphere never trails or drifts away from it. */
     var COUNT = reducedMotion ? 70 : 130;
-    var BASE_RADIUS = 78;
+    var BASE_RADIUS = 190;
     var particles = [];
     for (var i = 0; i < COUNT; i++) {
       var frac = (i + 0.5) / COUNT;
@@ -210,27 +211,22 @@
         radiusJitter: 0.82 + Math.random() * 0.32,
         len: 6 + Math.random() * 10,
         width: 1.3 + Math.random() * 1.4,
-        hue: HUE_START + Math.random() * HUE_SPAN,
-        pulsePhase: Math.random() * Math.PI * 2,
-        pulseSpeed: 0.7 + Math.random() * 0.6
+        hue: HUE_START + Math.random() * HUE_SPAN
       });
     }
 
     var coreX = window.innerWidth / 2;
     var coreY = window.innerHeight / 2;
-    var targetX = coreX;
-    var targetY = coreY;
     var lastMoveTime = -99999;
     var rotation = 0;
 
     window.addEventListener('pointermove', function (e) {
-      targetX = e.clientX;
-      targetY = e.clientY;
+      coreX = e.clientX;
+      coreY = e.clientY;
       lastMoveTime = performance.now();
     }, { passive: true });
 
     var FOCAL = 320;
-    var follow = reducedMotion ? 0.03 : 0.07;
     var spinSpeed = reducedMotion ? 0.0025 : 0.0065;
 
     function drawGas(t) {
@@ -238,11 +234,10 @@
       var idleT = Math.max(0, Math.min(1, (idleFor - 600) / 2600));
       canvas.style.filter = idleT > 0.02 ? 'blur(' + (idleT * 5).toFixed(1) + 'px)' : 'none';
 
-      coreX += (targetX - coreX) * follow;
-      coreY += (targetY - coreY) * follow;
       rotation += spinSpeed;
 
-      var breathe = 1 + Math.sin(t * 0.0012) * 0.06;
+      /* The whole sphere shrinks and grows back together - one shared pulse. */
+      var breathe = 1 + Math.sin(t * 0.0011) * 0.16;
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -252,8 +247,7 @@
       for (var idx = 0; idx < particles.length; idx++) {
         var p = particles[idx];
         var angle = p.theta + rotation;
-        var pulse = 1 + Math.sin(t * 0.0016 * p.pulseSpeed + p.pulsePhase) * 0.12;
-        var r = BASE_RADIUS * p.radiusJitter * breathe * pulse;
+        var r = BASE_RADIUS * p.radiusJitter * breathe;
 
         var sinPhi = Math.sin(p.phi);
         var x3 = r * sinPhi * Math.cos(angle);
