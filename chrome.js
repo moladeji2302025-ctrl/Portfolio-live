@@ -592,6 +592,15 @@
         var hue = HUE_START + ((hueAngle + Math.PI) / (Math.PI * 2)) * HUE_SPAN;
         var glow = 0.5 + wave * 0.25 + burstEnergy * 0.9;
         var alpha = (0.3 + Math.min(0.45, speed * 0.9) + glow * 0.2) * (reducedMotion ? 0.75 : 1);
+        /* A pale, high-lightness stroke glows against a dark background under
+           the "screen" blend mode, but that same pale color has almost no
+           contrast against white regardless of blend mode - multiply doesn't
+           recolor it, it only controls how much of it shows through. Light
+           mode needs a genuinely darker, richer stroke, not just a different
+           blend mode. */
+        var light = isLight();
+        var lightness = light ? 40 : 66;
+        if (light) alpha = Math.min(1, alpha * 1.6);
 
         /* Full size only lives in a middle "sweet spot" band - particles
            shrink smoothly both as they close in on the cursor/target and as
@@ -604,7 +613,7 @@
         ctx.save();
         ctx.translate(p.x, p.y);
         ctx.rotate(angle);
-        ctx.strokeStyle = 'hsla(' + hue + ', 82%, 66%, ' + alpha + ')';
+        ctx.strokeStyle = 'hsla(' + hue + ', 82%, ' + lightness + '%, ' + alpha + ')';
         ctx.lineWidth = p.width * (1 + burstEnergy * 1.3) * sizeMult;
         var len = p.len * (1 + burstEnergy * 2.2) * sizeMult;
         ctx.beginPath();

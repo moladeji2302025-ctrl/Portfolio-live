@@ -1048,7 +1048,7 @@ a {
   z-index: -1;
   pointer-events: none;
   mix-blend-mode: multiply;
-  opacity: 0.55;
+  opacity: 0.8;
 }
 
 :root[data-theme='dark'] #gas-canvas {
