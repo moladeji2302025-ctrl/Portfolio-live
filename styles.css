@@ -559,7 +559,7 @@ a {
 .hero-copy {
   color: var(--text-muted);
   max-width: 540px;
-  margin: 4.4rem 0 2rem;
+  margin: 1.2rem 0 2rem;
 }
 
 .hero-actions {
