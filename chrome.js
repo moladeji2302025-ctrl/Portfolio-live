@@ -166,7 +166,7 @@
   grain.setAttribute('aria-hidden', 'true');
   document.body.appendChild(grain);
 
-  /* ---------------- rotating particle orb ---------------- */
+  /* ---------------- fluid particle swarm ---------------- */
   if (fine) {
     var canvas = document.createElement('canvas');
     canvas.id = 'gas-canvas';
@@ -191,95 +191,102 @@
     function refreshGasColors() {} /* kept as a no-op so theme toggle callers stay valid */
     window.__refreshGasColors = refreshGasColors;
 
-    /* A compact sphere of particles, not a page-wide field: every particle
-       has a fixed spot on a rotating 3D shell. The whole shell spins as one
-       coordinated unit (a single rotation applied to everyone, so nothing
-       moves independently) and pulses as one unit too - the sphere's own
-       radius breathes in and out, not each particle on its own timer. The
-       center is locked exactly to the cursor position, every frame, so the
-       sphere never trails or drifts away from it. */
-    var COUNT = reducedMotion ? 70 : 130;
-    var BASE_RADIUS = 190;
+    /* A real simulation, not a shape formula: every particle has its own
+       velocity and is individually pulled toward the cursor, individually
+       pushed apart from neighbors that get too close, and individually
+       nudged sideways for a shared swirl. The cluster's form emerges frame
+       to frame from those local forces - that's what makes it read as
+       fluid rather than a rigid rotating body. */
+    var COUNT = reducedMotion ? 55 : 100;
+    var cx = window.innerWidth / 2;
+    var cy = window.innerHeight / 2;
     var particles = [];
     for (var i = 0; i < COUNT; i++) {
-      var frac = (i + 0.5) / COUNT;
-      var phi = Math.acos(1 - 2 * frac); /* Fibonacci sphere: even coverage */
-      var theta = Math.PI * (1 + Math.sqrt(5)) * i;
+      var seedAngle = Math.random() * Math.PI * 2;
+      var seedR = Math.random() * 140;
       particles.push({
-        theta: theta,
-        phi: phi,
-        radiusJitter: 0.82 + Math.random() * 0.32,
+        x: cx + Math.cos(seedAngle) * seedR,
+        y: cy + Math.sin(seedAngle) * seedR,
+        vx: 0,
+        vy: 0,
         len: 6 + Math.random() * 10,
-        width: 1.3 + Math.random() * 1.4,
-        hue: HUE_START + Math.random() * HUE_SPAN
+        width: 1.3 + Math.random() * 1.4
       });
     }
 
-    var coreX = window.innerWidth / 2;
-    var coreY = window.innerHeight / 2;
     var lastMoveTime = -99999;
-    var rotation = 0;
-
     window.addEventListener('pointermove', function (e) {
-      coreX = e.clientX;
-      coreY = e.clientY;
+      cx = e.clientX;
+      cy = e.clientY;
       lastMoveTime = performance.now();
     }, { passive: true });
 
-    var FOCAL = 320;
-    var spinSpeed = reducedMotion ? 0.0025 : 0.0065;
+    var pullK = reducedMotion ? 0.012 : 0.022;
+    var swirlK = reducedMotion ? 0.006 : 0.014;
+    var repelK = 0.9;
+    var damping = 0.9;
+    var baseSpacing = 42;
 
     function drawGas(t) {
       var idleFor = t - lastMoveTime;
       var idleT = Math.max(0, Math.min(1, (idleFor - 600) / 2600));
       canvas.style.filter = idleT > 0.02 ? 'blur(' + (idleT * 5).toFixed(1) + 'px)' : 'none';
 
-      rotation += spinSpeed;
-
-      /* The whole sphere shrinks and grows back together - one shared pulse. */
-      var breathe = 1 + Math.sin(t * 0.0011) * 0.16;
+      /* Breathing spacing: as the comfortable distance between particles
+         grows and shrinks, repulsion makes the whole swarm expand and
+         contract together - an emergent pulse, not a scale multiplier. */
+      var spacing = baseSpacing * (1 + Math.sin(t * 0.00075) * 0.4);
+      var spacing2 = spacing * spacing;
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.globalCompositeOperation = 'lighter';
       ctx.lineCap = 'round';
 
-      for (var idx = 0; idx < particles.length; idx++) {
-        var p = particles[idx];
-        var angle = p.theta + rotation;
-        var r = BASE_RADIUS * p.radiusJitter * breathe;
+      for (var i = 0; i < particles.length; i++) {
+        var p = particles[i];
+        var dx = cx - p.x;
+        var dy = cy - p.y;
+        var dist = Math.sqrt(dx * dx + dy * dy) || 0.001;
 
-        var sinPhi = Math.sin(p.phi);
-        var x3 = r * sinPhi * Math.cos(angle);
-        var y3 = r * Math.cos(p.phi);
-        var z3 = r * sinPhi * Math.sin(angle);
+        var ax = (dx / dist) * pullK * dist;
+        var ay = (dy / dist) * pullK * dist;
+        ax += (-dy / dist) * swirlK * Math.min(dist, 220);
+        ay += (dx / dist) * swirlK * Math.min(dist, 220);
 
-        /* Tangent sampled a hair ahead in the same rotation, projected the
-           same way, so the streak always points along its own travel arc. */
-        var angle2 = angle + 0.02;
-        var x3b = r * sinPhi * Math.cos(angle2);
-        var z3b = r * sinPhi * Math.sin(angle2);
+        for (var j = 0; j < particles.length; j++) {
+          if (j === i) continue;
+          var q = particles[j];
+          var ddx = p.x - q.x;
+          var ddy = p.y - q.y;
+          var d2 = ddx * ddx + ddy * ddy;
+          if (d2 < spacing2 && d2 > 0.0001) {
+            var d = Math.sqrt(d2);
+            var push = (spacing - d) / spacing * repelK;
+            ax += (ddx / d) * push;
+            ay += (ddy / d) * push;
+          }
+        }
 
-        var scale = FOCAL / (FOCAL + z3);
-        var scale2 = FOCAL / (FOCAL + z3b);
-        var sx = coreX + x3 * scale;
-        var sy = coreY + y3 * scale;
-        var sx2 = coreX + x3b * scale2;
-        var sy2 = coreY + y3 * scale2;
+        p.vx = (p.vx + ax * 0.06) * damping;
+        p.vy = (p.vy + ay * 0.06) * damping;
+        p.x += p.vx;
+        p.y += p.vy;
 
-        var dirAngle = Math.atan2(sy2 - sy, sx2 - sx);
-        var depthT = (z3 / r + 1) / 2; /* 0 = far side, 1 = near side */
-        var alpha = (0.22 + depthT * 0.5) * (reducedMotion ? 0.7 : 1);
+        var speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+        var angle = speed > 0.02 ? Math.atan2(p.vy, p.vx) : Math.atan2(cy - p.y, cx - p.x) + Math.PI / 2;
+        var hueAngle = Math.atan2(p.y - cy, p.x - cx);
+        var hue = HUE_START + ((hueAngle + Math.PI) / (Math.PI * 2)) * HUE_SPAN;
+        var alpha = (0.35 + Math.min(0.4, speed * 0.9)) * (reducedMotion ? 0.75 : 1);
 
         ctx.save();
-        ctx.translate(sx, sy);
-        ctx.rotate(dirAngle);
-        ctx.strokeStyle = 'hsla(' + p.hue + ', 82%, 66%, ' + alpha + ')';
-        ctx.lineWidth = p.width * scale;
-        var len = p.len * scale;
+        ctx.translate(p.x, p.y);
+        ctx.rotate(angle);
+        ctx.strokeStyle = 'hsla(' + hue + ', 82%, 66%, ' + alpha + ')';
+        ctx.lineWidth = p.width;
         ctx.beginPath();
-        ctx.moveTo(-len / 2, 0);
-        ctx.lineTo(len / 2, 0);
+        ctx.moveTo(-p.len / 2, 0);
+        ctx.lineTo(p.len / 2, 0);
         ctx.stroke();
         ctx.restore();
       }
