@@ -121,6 +121,7 @@
   var pageLoader = document.getElementById('pageLoader');
   var loaderCenter = null;
   var triggerBurst = function () {};
+  var triggerGentleRelease = function () { loaderCenter = null; };
 
   function centerOfScreen() {
     return { x: window.innerWidth / 2, y: window.innerHeight / 2 };
@@ -142,13 +143,14 @@
       var OUT_DELAY = 480;
 
       function revealPage() {
-        triggerBurst();
+        triggerGentleRelease();
         setTimeout(function () {
           pageLoader.classList.remove('is-instant');
           pageLoader.classList.remove('is-active');
-          loaderCenter = null;
+        }, 400);
+        setTimeout(function () {
           setCanvasFront(false);
-        }, 160);
+        }, 1550);
       }
 
       if (pageLoader.classList.contains('is-active')) {
@@ -336,6 +338,25 @@
     document.addEventListener('click', burstNow);
     triggerBurst = burstNow;
 
+    /* The page-transition reveal doesn't want the click burst's sharp
+       outward kick - it wants the swarm to just let go of the center and
+       drift apart on its own. Fading the pull force toward zero over time
+       and leaning on the ever-present repulsion between particles to do
+       the actual separating reads as a soft release, not an explosion. */
+    var releasing = false;
+    var releaseStart = 0;
+    var RELEASE_DURATION = 1900;
+    function gentleRelease() {
+      releasing = true;
+      releaseStart = performance.now();
+    }
+    triggerGentleRelease = gentleRelease;
+
+    /* Easing the pull in on arrival too, so the swarm gathers into the
+       center smoothly instead of snapping straight to it. */
+    var convergeStart = null;
+    var CONVERGE_DURATION = 1100;
+
     var hoverBoost = 0;
 
     var pullK = reducedMotion ? 0.02 : 0.05;
@@ -343,13 +364,47 @@
     var repelK = 0.9;
     var damping = 0.86;
     var baseSpacing = 170;
+    var loaderSpacing = baseSpacing * 2.1;
 
     function drawGas(t) {
-      var idleFor = t - lastMoveTime;
-      var idleT = Math.max(0, Math.min(1, (idleFor - 600) / 2600));
-      var blurPulse = 0.5 + Math.sin(t * 0.0014) * 0.5;
-      var blurAmount = idleT * 2.6 * blurPulse;
-      canvas.style.filter = blurAmount > 0.05 ? 'blur(' + blurAmount.toFixed(1) + 'px)' : 'none';
+      var inTransition = !!loaderCenter;
+
+      /* Finish an in-progress release: fade the pull to zero, then hand
+         back to normal cursor-follow. */
+      var releaseMult = 1;
+      if (releasing) {
+        var relT = Math.min(1, (t - releaseStart) / RELEASE_DURATION);
+        releaseMult = 1 - relT;
+        if (relT >= 1) {
+          releasing = false;
+          loaderCenter = null;
+          inTransition = false;
+        }
+      }
+
+      /* Ease the pull in on arrival so the swarm gathers smoothly instead
+         of snapping straight to the center. */
+      var convergeMult = 1;
+      if (inTransition && !releasing) {
+        if (convergeStart === null) convergeStart = t;
+        convergeMult = Math.min(1, (t - convergeStart) / CONVERGE_DURATION);
+        convergeMult = 0.22 + convergeMult * 0.78;
+      } else if (!inTransition) {
+        convergeStart = null;
+      }
+
+      if (inTransition) {
+        /* Just a whisper of blur breathing with the energy wave, not the
+           fuller idle blur - the load state should read as mostly sharp. */
+        var loaderBlur = (0.5 + Math.sin(t * 0.0023) * 0.5) * 0.9;
+        canvas.style.filter = loaderBlur > 0.05 ? 'blur(' + loaderBlur.toFixed(1) + 'px)' : 'none';
+      } else {
+        var idleFor = t - lastMoveTime;
+        var idleT = Math.max(0, Math.min(1, (idleFor - 600) / 2600));
+        var blurPulse = 0.5 + Math.sin(t * 0.0014) * 0.5;
+        var blurAmount = idleT * 2.6 * blurPulse;
+        canvas.style.filter = blurAmount > 0.05 ? 'blur(' + blurAmount.toFixed(1) + 'px)' : 'none';
+      }
 
       var hovering = root.classList.contains('cursor-hover');
       hoverBoost += ((hovering ? 1 : 0) - hoverBoost) * 0.12;
@@ -360,15 +415,18 @@
 
       /* A traveling ripple, not a shared on/off pulse: phase depends on each
          particle's own distance from the target, so the wave visibly moves
-         outward through the swarm like a shockwave, and clicking (or a page
-         transition loading) spikes its amplitude for one big pulse before
-         it settles back to ambient. */
+         outward through the swarm like a shockwave. During a page-transition
+         load it runs wider and stronger, reading as deliberate energy waves
+         rather than the subtler ambient/click ripple. */
       var target = loaderCenter || { x: cx, y: cy };
       var tx = target.x;
       var ty = target.y;
-      var waveAmp = (0.3 + burstEnergy * 3.2) * (loaderCenter ? 1.5 : 1);
-      var spacing = baseSpacing * (1 + hoverBoost * 0.7);
+      var waveAmp = inTransition ? 1.5 : (0.3 + burstEnergy * 3.2);
+      var waveSpatialFreq = inTransition ? 0.022 : 0.045;
+      var waveTimeFreq = inTransition ? 0.0046 : 0.0032;
+      var spacing = (inTransition ? loaderSpacing : baseSpacing) * (1 + hoverBoost * 0.7);
       var spacing2 = spacing * spacing;
+      var pullMult = convergeMult * releaseMult;
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -380,12 +438,12 @@
         var dx = tx - p.x;
         var dy = ty - p.y;
         var dist = Math.sqrt(dx * dx + dy * dy) || 0.001;
-        var wave = Math.sin(t * 0.0032 - dist * 0.045);
+        var wave = Math.sin(t * waveTimeFreq - dist * waveSpatialFreq);
 
-        var ax = (dx / dist) * pullK * dist;
-        var ay = (dy / dist) * pullK * dist;
-        ax += (-dy / dist) * swirlK * Math.min(dist, 340);
-        ay += (dx / dist) * swirlK * Math.min(dist, 340);
+        var ax = (dx / dist) * pullK * dist * pullMult;
+        var ay = (dy / dist) * pullK * dist * pullMult;
+        ax += (-dy / dist) * swirlK * Math.min(dist, 340) * pullMult;
+        ay += (dx / dist) * swirlK * Math.min(dist, 340) * pullMult;
         ax += -(dx / dist) * wave * waveAmp;
         ay += -(dy / dist) * wave * waveAmp;
 
