@@ -13,7 +13,25 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
   <!-- Thirteen licensed display faces for the hero "Art" style-morph are
-       self-hosted from /fonts and declared via @font-face in styles.css. -->
+       self-hosted from /fonts and declared via @font-face in styles.css.
+       Preloaded here so the browser fetches all of them immediately at
+       page load rather than only when each one's keyframe first becomes
+       active - without this, the first appearance of a given font shows
+       the fallback face and then snaps to the real one mid-bounce as it
+       finishes downloading, on top of the morph's own opacity dip. -->
+  <link rel="preload" href="./fonts/Utopia.ttf" as="font" type="font/ttf" crossorigin />
+  <link rel="preload" href="./fonts/Achilo.otf" as="font" type="font/otf" crossorigin />
+  <link rel="preload" href="./fonts/Caelvin.ttf" as="font" type="font/ttf" crossorigin />
+  <link rel="preload" href="./fonts/Condens.ttf" as="font" type="font/ttf" crossorigin />
+  <link rel="preload" href="./fonts/RoseAngel.otf" as="font" type="font/otf" crossorigin />
+  <link rel="preload" href="./fonts/Urema.ttf" as="font" type="font/ttf" crossorigin />
+  <link rel="preload" href="./fonts/Gakero.ttf" as="font" type="font/ttf" crossorigin />
+  <link rel="preload" href="./fonts/Mantela.ttf" as="font" type="font/ttf" crossorigin />
+  <link rel="preload" href="./fonts/Magode.ttf" as="font" type="font/ttf" crossorigin />
+  <link rel="preload" href="./fonts/Awaline.ttf" as="font" type="font/ttf" crossorigin />
+  <link rel="preload" href="./fonts/Megha.otf" as="font" type="font/otf" crossorigin />
+  <link rel="preload" href="./fonts/Surgena.ttf" as="font" type="font/ttf" crossorigin />
+  <link rel="preload" href="./fonts/BlackSansa.otf" as="font" type="font/otf" crossorigin />
   <link rel="stylesheet" href="./styles.css" />
   <!-- Google Analytics (GA4) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-2D0HS9BVYL"></script>
