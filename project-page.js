@@ -282,57 +282,6 @@ const setProjectPageCurrentYear = () => {
 
 
 // Custom Diamond Cursor Implementation
-const initProjectPageCustomCursor = () => {
-  const cursor = document.querySelector('.custom-cursor');
-  if (!cursor) return;
-
-  let mouseX = 0;
-  let mouseY = 0;
-  let cursorX = 0;
-  let cursorY = 0;
-
-  let cursorTimeout;
-  
-  document.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-    
-    if (!cursor.classList.contains('active')) {
-      cursor.classList.add('active');
-    }
-
-    const target = document.elementFromPoint(mouseX, mouseY);
-    const hovering = !!(target && target.closest('a, button, .pager-link, .tag-pill, input'));
-    cursor.classList.toggle('hovering', hovering);
-    
-    clearTimeout(cursorTimeout);
-    cursorTimeout = setTimeout(() => {
-      cursor.classList.remove('active');
-    }, 2000);
-  });
-
-  document.addEventListener('mousedown', () => {
-    cursor.classList.add('clicking');
-  });
-
-  document.addEventListener('mouseup', () => {
-    cursor.classList.remove('clicking');
-  });
-
-  const animateCursor = () => {
-    const speed = 0.15;
-    cursorX += (mouseX - cursorX) * speed;
-    cursorY += (mouseY - cursorY) * speed;
-    
-    cursor.style.left = cursorX + 'px';
-    cursor.style.top = cursorY + 'px';
-    
-    requestAnimationFrame(animateCursor);
-  };
-
-  animateCursor();
-};
-
 // Beige Pattern Animation Implementation
 const initBeigePatterns = () => {
   const canvas = document.getElementById('beige-patterns-canvas');
@@ -464,7 +413,6 @@ const initProjectPage = () => {
   renderProjectPage(project, variant);
   handleMobileMenu();
   setProjectPageCurrentYear();
-  initProjectPageCustomCursor();
   initBeigePatterns();
 };
 

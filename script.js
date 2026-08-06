@@ -797,58 +797,11 @@ const FEATURED_PROJECT_IDS = [
 
 const resolveProjectThumb = (project) => project.thumbnail || project.mediaSrc || '';
 
-const createProjectCard = (project) => {
-  const card = document.createElement('article');
-  card.className = 'project-card reveal';
-  card.dataset.animate = '';
-  card.dataset.category = project.category;
-
-  const mediaSrc = resolveProjectThumb(project);
-  if (project.mediaType === 'video') {
-    const video = document.createElement('video');
-    video.src = mediaSrc;
-    video.muted = true;
-    video.loop = true;
-    video.autoplay = true;
-    video.playsInline = true;
-    video.setAttribute('muted', '');
-    video.setAttribute('loop', '');
-    video.setAttribute('autoplay', '');
-    card.appendChild(video);
-  } else {
-    const image = document.createElement('img');
-    image.src = mediaSrc;
-    image.alt = project.title;
-    image.loading = 'lazy';
-    card.appendChild(image);
-  }
-
-  const overlay = document.createElement('div');
-  overlay.className = 'project-overlay';
-  const categoryNode = document.createElement('p');
-  categoryNode.className = 'section-label';
-  categoryNode.style.fontSize = '.9rem';
-  categoryNode.style.margin = '0';
-  categoryNode.textContent = project.category;
-
-  const titleNode = document.createElement('h3');
-  titleNode.style.margin = '.25rem 0 0';
-  titleNode.textContent = project.title;
-
-  overlay.append(categoryNode, titleNode);
-
-  const viewButton = document.createElement('span');
-  viewButton.className = 'project-view';
-  viewButton.textContent = 'View';
-
-  // Full-cover transparent link makes the entire card clickable
-  const cardLink = document.createElement('a');
-  cardLink.className = 'project-card-link';
-  cardLink.href = `project.html?id=${project.id}&category=${encodeURIComponent(project.category)}`;
-  cardLink.setAttribute('aria-label', `View ${project.title}`);
-
-  card.append(overlay, viewButton, cardLink);
-  return card;
+const PORTFOLIO_GLYPH = {
+  'Motion Graphics': '<path d="M3 12h3l2-7 4 14 2-9 2 5h5"/>',
+  Animations: '<path d="M9 7l9 5-9 5V7z"/><rect x="3" y="4" width="18" height="16" rx="3"/>',
+  Illustrations: '<path d="M4 20l4-1 10-10a2.1 2.1 0 0 0-3-3L5 16l-1 4z"/>',
+  Drawings: '<path d="M4 20l4-1 10-10a2.1 2.1 0 0 0-3-3L5 16l-1 4z"/><path d="M13 6l3 3"/>'
 };
 
 const createExperienceCard = (experience) => {
@@ -890,64 +843,119 @@ const createExperienceCard = (experience) => {
 };
 
 const initPortfolio = () => {
-  const grid = document.getElementById('portfolio-grid');
-  if (!grid) return;
+  const shelf = document.getElementById('portfolio-shelf');
+  const tabsWrap = document.getElementById('portfolio-tabs');
+  const indicator = document.getElementById('portfolio-indicator');
+  const infoInner = document.getElementById('portfolio-info');
+  if (!shelf || !tabsWrap || !indicator || !infoInner) return;
 
-  const CATEGORY_ORDER = ['Motion Graphics', 'Animations', 'Illustrations', 'Drawings'];
+  const buttons = [...tabsWrap.querySelectorAll('.filter-btn')];
+  const defaultBtn = buttons.find((b) => b.classList.contains('active')) || buttons[0];
+  let activeCat = defaultBtn ? defaultBtn.dataset.filter : 'Animations';
+  let activeIndex = 0;
+  let infoSwapTimer = null;
 
-  grid.innerHTML = '';
-  CATEGORY_ORDER.forEach((cat) => {
-    const catProjects = window.projects.filter((p) => p.category === cat);
-    if (catProjects.length === 0) return;
+  const currentItems = () => window.projects.filter((p) => p.category === activeCat);
 
-    const section = document.createElement('div');
-    section.className = 'category-section';
-    section.dataset.category = cat;
+  const buildInfoHTML = (project) =>
+    `<p class="info-meta">${project.category} · ${project.date || ''}</p>` +
+    `<h3 class="info-title">${project.title}</h3>` +
+    `<p class="info-desc">${project.summary || project.description || ''}</p>` +
+    `<div class="info-tools">${(project.tools || []).map((tool) => `<span class="info-tag">${tool}</span>`).join('')}</div>`;
 
-    const header = document.createElement('div');
-    header.className = 'category-header';
-    const catLabel = document.createElement('span');
-    catLabel.className = 'section-label';
-    catLabel.textContent = `${catProjects.length} Project${catProjects.length !== 1 ? 's' : ''}`;
-    const catTitle = document.createElement('h3');
-    catTitle.className = 'category-title';
-    catTitle.textContent = cat;
-    header.append(catLabel, catTitle);
+  const updateInfo = (instant) => {
+    const project = currentItems()[activeIndex];
+    if (!project) {
+      infoInner.innerHTML = '';
+      return;
+    }
+    const render = () => { infoInner.innerHTML = buildInfoHTML(project); };
+    if (instant) {
+      render();
+      return;
+    }
+    if (infoSwapTimer) clearTimeout(infoSwapTimer);
+    infoInner.classList.add('info-fade');
+    infoSwapTimer = setTimeout(() => {
+      render();
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => infoInner.classList.remove('info-fade'));
+      });
+    }, 220);
+  };
 
-    const catGrid = document.createElement('div');
-    catGrid.className = 'category-grid';
-    catProjects.forEach((project) => catGrid.appendChild(createProjectCard(project)));
+  const positionIndicator = () => {
+    const activeTile = shelf.querySelector('.tile.is-active');
+    if (!activeTile) return;
+    const shelfRect = shelf.getBoundingClientRect();
+    const tileRect = activeTile.getBoundingClientRect();
+    const center = tileRect.left - shelfRect.left + tileRect.width / 2 + shelf.scrollLeft;
+    indicator.style.transform = `translateX(${center - shelf.parentElement.clientWidth / 2}px)`;
+  };
 
-    section.append(header, catGrid);
-    grid.appendChild(section);
-  });
-
-  const buttons = document.querySelectorAll('.filter-btn');
-  const applyFilter = (filterValue) => {
-    grid.querySelectorAll('.category-section').forEach((section) => {
-      const show = filterValue === 'all' || section.dataset.category === filterValue;
-      section.classList.toggle('is-hidden', !show);
+  const setActive = (index) => {
+    if (index === activeIndex) return;
+    activeIndex = index;
+    shelf.querySelectorAll('.tile').forEach((tile, idx) => {
+      tile.classList.toggle('is-active', idx === index);
     });
+    updateInfo(false);
+    positionIndicator();
+  };
+
+  const focusTileAt = (index) => {
+    const tiles = shelf.querySelectorAll('.tile');
+    if (tiles[index]) tiles[index].focus();
+  };
+
+  const renderShelf = () => {
+    const items = currentItems();
+    shelf.innerHTML = '';
+    items.forEach((project, index) => {
+      const tile = document.createElement('a');
+      tile.className = `tile project-card-link${index === activeIndex ? ' is-active' : ''}`;
+      tile.href = `project.html?id=${project.id}&category=${encodeURIComponent(project.category)}`;
+      tile.setAttribute('aria-label', `View ${project.title}`);
+      tile.innerHTML =
+        `<span class="tile-num">${String(index + 1).padStart(2, '0')}</span>` +
+        `<svg class="tile-glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${PORTFOLIO_GLYPH[project.category] || ''}</svg>` +
+        `<span class="tile-name">${project.title}</span>`;
+      tile.addEventListener('mouseenter', () => setActive(index));
+      tile.addEventListener('focus', () => setActive(index));
+      tile.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowRight') { event.preventDefault(); focusTileAt(Math.min(index + 1, items.length - 1)); }
+        if (event.key === 'ArrowLeft') { event.preventDefault(); focusTileAt(Math.max(index - 1, 0)); }
+      });
+      shelf.appendChild(tile);
+    });
+    activeIndex = Math.min(activeIndex, Math.max(items.length - 1, 0));
+    updateInfo(true);
+    requestAnimationFrame(positionIndicator);
   };
 
   buttons.forEach((btn) => {
     btn.addEventListener('click', () => {
-      buttons.forEach((item) => item.classList.remove('active'));
-      btn.classList.add('active');
-      applyFilter(btn.dataset.filter || 'all');
+      if (activeCat === btn.dataset.filter) return;
+      activeCat = btn.dataset.filter;
+      activeIndex = 0;
+      buttons.forEach((b) => b.classList.toggle('active', b === btn));
+      renderShelf();
     });
   });
 
   const saved = sessionStorage.getItem('portfolioFilter');
   if (saved) {
-    const savedButton = [...buttons].find((btn) => btn.dataset.filter === saved);
+    const savedButton = buttons.find((btn) => btn.dataset.filter === saved);
     if (savedButton) {
-      buttons.forEach((item) => item.classList.remove('active'));
-      savedButton.classList.add('active');
-      applyFilter(saved);
+      activeCat = saved;
+      activeIndex = 0;
+      buttons.forEach((b) => b.classList.toggle('active', b === savedButton));
     }
     sessionStorage.removeItem('portfolioFilter');
   }
+
+  renderShelf();
+  window.addEventListener('resize', positionIndicator);
 };
 
 const initExperience = () => {
@@ -1062,38 +1070,6 @@ const initHeroProfileImage = () => {
   const randomIndex = Math.floor(Math.random() * PROFILE_IMAGES.length);
   const selectedImage = PROFILE_IMAGES[randomIndex];
   imageNode.src = `./Profile/${encodeURIComponent(selectedImage)}`;
-};
-
-const initCustomCursor = () => {
-  const cursor = document.querySelector('.custom-cursor');
-  if (!cursor || window.matchMedia('(pointer: coarse)').matches) return;
-
-  let mouseX = 0;
-  let mouseY = 0;
-  let x = 0;
-  let y = 0;
-
-  const hoverSelector = 'a, button, .project-card, .filter-btn, .faq-trigger, .arrow-btn, .dot, input';
-
-  document.addEventListener('mousemove', (event) => {
-    mouseX = event.clientX;
-    mouseY = event.clientY;
-    cursor.classList.add('active');
-
-    const target = document.elementFromPoint(mouseX, mouseY);
-    const hovering = !!(target && target.closest(hoverSelector));
-    cursor.classList.toggle('hovering', hovering);
-  });
-
-  const animate = () => {
-    x += (mouseX - x) * 0.18;
-    y += (mouseY - y) * 0.18;
-    cursor.style.left = `${x}px`;
-    cursor.style.top = `${y}px`;
-    requestAnimationFrame(animate);
-  };
-
-  animate();
 };
 
 const initNavHighlight = () => {
@@ -1291,7 +1267,6 @@ const initApp = () => {
   initScrollReveal();
   initCounters();
   initHeroProfileImage();
-  initCustomCursor();
   initNavHighlight();
   initTestimonials();
   initFaq();
