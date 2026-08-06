@@ -166,7 +166,7 @@
   grain.setAttribute('aria-hidden', 'true');
   document.body.appendChild(grain);
 
-  /* ---------------- swirling streak field ---------------- */
+  /* ---------------- magnetic particle field ---------------- */
   if (fine) {
     var canvas = document.createElement('canvas');
     canvas.id = 'gas-canvas';
@@ -174,8 +174,6 @@
     document.body.insertBefore(canvas, document.body.firstChild);
     var ctx = canvas.getContext('2d');
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
-    var particles = [];
-    var lastSpawn = 0;
 
     function resizeCanvas() {
       canvas.width = window.innerWidth * dpr;
@@ -193,53 +191,84 @@
     function refreshGasColors() {} /* kept as a no-op so theme toggle callers stay valid */
     window.__refreshGasColors = refreshGasColors;
 
-    var spawnGap = reducedMotion ? 55 : 22;
-    var motionScale = reducedMotion ? 0.4 : 1;
+    /* A persistent field, not a spawn/decay trail: every particle is always
+       alive, always drifting, and gets pulled into orbit around the cursor
+       (magnetic-field style: radial pull + tangential swirl) whenever the
+       mouse is active. When the mouse goes idle they keep gently pulsing
+       on their own and the whole field softens with blur. */
+    var COUNT = reducedMotion ? 90 : 170;
+    var particles = [];
+    for (var i = 0; i < COUNT; i++) {
+      particles.push({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        vx: 0,
+        vy: 0,
+        len: 7 + Math.random() * 13,
+        width: 1.4 + Math.random() * 1.6,
+        hue: HUE_START + Math.random() * HUE_SPAN,
+        phase: Math.random() * Math.PI * 2
+      });
+    }
+
+    var targetX = window.innerWidth / 2;
+    var targetY = window.innerHeight / 2;
+    var lastMoveTime = -99999;
 
     window.addEventListener('pointermove', function (e) {
-      var now = performance.now();
-      if (now - lastSpawn > spawnGap && particles.length < 160) {
-        lastSpawn = now;
-        var spin = (0.018 + Math.random() * 0.03) * motionScale;
-        particles.push({
-          ox: e.clientX,
-          oy: e.clientY,
-          angle: Math.random() * Math.PI * 2,
-          spin: Math.random() < 0.5 ? spin : -spin,
-          radius: 0,
-          radialSpeed: (0.55 + Math.random() * 1.1) * motionScale,
-          len: 9 + Math.random() * 16,
-          width: 2 + Math.random() * 2,
-          hue: HUE_START + Math.random() * HUE_SPAN,
-          born: now,
-          life: 1300 + Math.random() * 900
-        });
-      }
+      targetX = e.clientX;
+      targetY = e.clientY;
+      lastMoveTime = performance.now();
     }, { passive: true });
 
     function drawGas(t) {
+      var idleFor = t - lastMoveTime;
+      var idleT = Math.max(0, Math.min(1, (idleFor - 400) / 2200));
+      var activity = reducedMotion ? 0.3 : 1 - idleT * 0.75;
+      canvas.style.filter = idleT > 0.02 ? 'blur(' + (idleT * 7).toFixed(1) + 'px)' : 'none';
+
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.globalCompositeOperation = 'lighter';
       ctx.lineCap = 'round';
 
-      for (var i = particles.length - 1; i >= 0; i--) {
-        var p = particles[i];
-        var age = t - p.born;
-        if (age > p.life) { particles.splice(i, 1); continue; }
-        var lifeT = age / p.life;
+      for (var idx = 0; idx < particles.length; idx++) {
+        var p = particles[idx];
+        var dx = targetX - p.x;
+        var dy = targetY - p.y;
+        var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        var nx = dx / dist;
+        var ny = dy / dist;
+        var tx = -ny;
+        var ty = nx;
 
-        p.angle += p.spin;
-        p.radius += p.radialSpeed;
+        var pull = Math.min(0.5, 55 / dist) * activity;
+        var swirl = 0.4 * activity;
 
-        var fade = lifeT < 0.1 ? lifeT / 0.1 : 1 - (lifeT - 0.1) / 0.9;
-        var alpha = Math.max(0, fade) * 0.8;
-        var x = p.ox + Math.cos(p.angle) * p.radius;
-        var y = p.oy + Math.sin(p.angle) * p.radius;
+        p.vx += (nx * pull + tx * swirl) * 0.05;
+        p.vy += (ny * pull + ty * swirl) * 0.05;
+
+        p.phase += 0.014;
+        p.vx += Math.sin(p.phase) * 0.012;
+        p.vy += Math.cos(p.phase * 0.85) * 0.012;
+
+        p.vx *= 0.945;
+        p.vy *= 0.945;
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < -60) p.x = window.innerWidth + 60;
+        if (p.x > window.innerWidth + 60) p.x = -60;
+        if (p.y < -60) p.y = window.innerHeight + 60;
+        if (p.y > window.innerHeight + 60) p.y = -60;
+
+        var speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+        var angle = Math.atan2(p.vy, p.vx);
+        var alpha = 0.28 + Math.min(0.4, speed * 1.6);
 
         ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(p.angle + Math.PI / 2);
+        ctx.translate(p.x, p.y);
+        ctx.rotate(angle);
         ctx.strokeStyle = 'hsla(' + p.hue + ', 82%, 66%, ' + alpha + ')';
         ctx.lineWidth = p.width;
         ctx.beginPath();
