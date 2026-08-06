@@ -41,26 +41,55 @@
 
   /* ---------------- sound synth ---------------- */
   var audioCtx = null;
+  var reverb = null;
+  var reverbWet = null;
   var soundOn = true;
   try { soundOn = localStorage.getItem('mo-sound') !== 'off'; } catch (e) {}
 
+  /* A shared, lightweight synthetic reverb (no audio files) - every sound
+     on the site routes through the same one, so their tails linger and
+     genuinely overlap with whatever plays next, the way notes in a room
+     bleed into each other, rather than each sound existing in total
+     isolation and just stopping. */
+  function buildReverbImpulse(ctx) {
+    var duration = 2.2;
+    var rate = ctx.sampleRate;
+    var length = Math.floor(rate * duration);
+    var impulse = ctx.createBuffer(2, length, rate);
+    for (var ch = 0; ch < 2; ch++) {
+      var data = impulse.getChannelData(ch);
+      for (var i = 0; i < length; i++) {
+        var decay = Math.pow(1 - i / length, 2.6);
+        data[i] = (Math.random() * 2 - 1) * decay;
+      }
+    }
+    return impulse;
+  }
   function ensureAudio() {
     if (!audioCtx) {
       var Ctx = window.AudioContext || window.webkitAudioContext;
       if (Ctx) audioCtx = new Ctx();
+      if (audioCtx) {
+        reverb = audioCtx.createConvolver();
+        reverb.buffer = buildReverbImpulse(audioCtx);
+        reverbWet = audioCtx.createGain();
+        reverbWet.gain.value = 0.34;
+        reverb.connect(reverbWet).connect(audioCtx.destination);
+      }
     }
     if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
     return audioCtx;
   }
   /* Soft bell-like chime: a steady sine fundamental plus a quiet overtone,
-     both with a gentle attack and a long smooth decay - a click is a sharp
-     transient with a hard cutoff; this rings out instead. */
+     both with a gentle attack and a long, slow decay - ringing out into
+     the shared reverb rather than cutting off, so it reads as one note in
+     an ongoing piece of music instead of an isolated UI beep. */
   function chime(freq, duration, peak, delay, overtone) {
     if (!soundOn) return;
     var ctx = ensureAudio();
     if (!ctx) return;
     var t0 = ctx.currentTime + (delay || 0);
-    var attack = 0.025;
+    var attack = 0.04;
 
     function partial(f, gainScale) {
       var osc = ctx.createOscillator();
@@ -70,17 +99,57 @@
       gain.gain.setValueAtTime(0.0001, t0);
       gain.gain.linearRampToValueAtTime(peak * gainScale, t0 + attack);
       gain.gain.exponentialRampToValueAtTime(0.0001, t0 + attack + duration);
-      osc.connect(gain).connect(ctx.destination);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      gain.connect(reverb);
       osc.start(t0);
-      osc.stop(t0 + attack + duration + 0.05);
+      osc.stop(t0 + attack + duration + 0.3);
     }
 
     partial(freq, 1);
     if (overtone) partial(freq * overtone, 0.3);
   }
-  function playHover() { chime(880, 0.14, 0.018, 0, 2); }
-  function playSelect() { chime(659, 0.2, 0.045, 0, 1.5); chime(988, 0.26, 0.032, 0.055, 1.5); }
-  function playToggle() { chime(523, 0.22, 0.04, 0, 2); }
+  function playHover() { chime(880, 0.32, 0.016, 0, 2); }
+  function playSelect() { chime(659, 0.42, 0.04, 0, 1.5); chime(988, 0.52, 0.028, 0.07, 1.5); }
+  function playToggle() { chime(523, 0.48, 0.036, 0, 2); }
+  /* A water drop: a quick downward pitch-bend "plip" (the drop itself)
+     followed by a much quieter, longer sine underneath that keeps
+     wobbling as it decays (the ripple spreading out after it lands),
+     both feeding the shared reverb so it dissolves into the same space
+     as every other sound instead of stopping short. */
+  function playDrop() {
+    if (!soundOn) return;
+    var ctx = ensureAudio();
+    if (!ctx) return;
+    var t0 = ctx.currentTime;
+
+    var plip = ctx.createOscillator();
+    var plipGain = ctx.createGain();
+    plip.type = 'sine';
+    plip.frequency.setValueAtTime(1100, t0);
+    plip.frequency.exponentialRampToValueAtTime(340, t0 + 0.16);
+    plipGain.gain.setValueAtTime(0.0001, t0);
+    plipGain.gain.linearRampToValueAtTime(0.05, t0 + 0.012);
+    plipGain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.42);
+    plip.connect(plipGain);
+    plipGain.connect(ctx.destination);
+    plipGain.connect(reverb);
+    plip.start(t0);
+    plip.stop(t0 + 0.75);
+
+    var ripple = ctx.createOscillator();
+    var rippleGain = ctx.createGain();
+    ripple.type = 'sine';
+    ripple.frequency.setValueAtTime(420, t0 + 0.05);
+    ripple.frequency.exponentialRampToValueAtTime(300, t0 + 1.4);
+    rippleGain.gain.setValueAtTime(0.0001, t0 + 0.05);
+    rippleGain.gain.linearRampToValueAtTime(0.012, t0 + 0.12);
+    rippleGain.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.6);
+    ripple.connect(rippleGain);
+    rippleGain.connect(reverb);
+    ripple.start(t0 + 0.05);
+    ripple.stop(t0 + 1.9);
+  }
 
   document.addEventListener('pointerdown', function unlock() {
     ensureAudio();
@@ -91,8 +160,16 @@
   document.addEventListener('mouseover', function (e) {
     if (e.target.closest(SOUND_HOVER_SELECTOR)) playHover();
   });
+  /* Anything actually interactive gets its existing click sound; a click
+     that lands on genuinely empty space gets a water drop instead, like
+     dropping a stone into the page. */
+  var SOUND_INTERACTIVE_SELECTOR = 'a, button, input, textarea, select, [role="button"], .tile, .filter-btn, .faq-trigger, .arrow-btn, .dot, .project-card, .theme-switch, #sound-toggle, #mobile-menu-toggle';
   document.addEventListener('click', function (e) {
-    if (e.target.closest('button, .project-card-link, .filter-btn, a.nav-cta, a.btn')) playSelect();
+    if (e.target.closest('button, .project-card-link, .filter-btn, a.nav-cta, a.btn')) {
+      playSelect();
+    } else if (!e.target.closest(SOUND_INTERACTIVE_SELECTOR)) {
+      playDrop();
+    }
   });
 
   var soundToggle = document.getElementById('sound-toggle');
