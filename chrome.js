@@ -424,7 +424,11 @@
       var waveAmp = inTransition ? 1.5 : (0.3 + burstEnergy * 3.2);
       var waveSpatialFreq = inTransition ? 0.022 : 0.045;
       var waveTimeFreq = inTransition ? 0.0046 : 0.0032;
-      var spacing = (inTransition ? loaderSpacing : baseSpacing) * (1 + hoverBoost * 0.7);
+      /* During the load state the comfortable spacing itself breathes -
+         shrinks in tight, then expands back out - on top of the wider
+         base distance, rather than staying at one fixed width. */
+      var loaderSpacingPulse = inTransition ? 0.4 + (0.5 + Math.sin(t * 0.0016) * 0.5) * 0.9 : 1;
+      var spacing = (inTransition ? loaderSpacing * loaderSpacingPulse : baseSpacing) * (1 + hoverBoost * 0.7);
       var spacing2 = spacing * spacing;
       var pullMult = convergeMult * releaseMult;
 
