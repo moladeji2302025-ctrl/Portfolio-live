@@ -128,7 +128,8 @@
 
   if (pageLoader) {
     (function () {
-      var MIN_SHOW = 650;
+      var FAST_LOAD_THRESHOLD = 3000;
+      var MIN_SHOW_IF_FAST = 5000;
       var OUT_DELAY = 480;
 
       function revealPage() {
@@ -144,7 +145,12 @@
         loaderCenter = centerOfScreen();
         var arrivedAt = performance.now();
         var doReveal = function () {
-          setTimeout(revealPage, Math.max(0, MIN_SHOW - (performance.now() - arrivedAt)));
+          /* A load under 3s still holds the loader to a full 5s so it never
+             reads as a flicker; a slower load is shown for exactly as long
+             as it actually took, no extra padding on top of that. */
+          var elapsed = performance.now() - arrivedAt;
+          var wait = elapsed < FAST_LOAD_THRESHOLD ? Math.max(0, MIN_SHOW_IF_FAST - elapsed) : 0;
+          setTimeout(revealPage, wait);
         };
         if (document.readyState === 'complete') doReveal();
         else window.addEventListener('load', doReveal);
