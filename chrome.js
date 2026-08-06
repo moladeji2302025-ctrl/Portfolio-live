@@ -166,7 +166,7 @@
   grain.setAttribute('aria-hidden', 'true');
   document.body.appendChild(grain);
 
-  /* ---------------- ambient gas trail ---------------- */
+  /* ---------------- swirling streak field ---------------- */
   if (fine) {
     var canvas = document.createElement('canvas');
     canvas.id = 'gas-canvas';
@@ -175,26 +175,6 @@
     var ctx = canvas.getContext('2d');
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
     var particles = [];
-    var mx = window.innerWidth / 2, my = window.innerHeight / 2;
-
-    /* Pre-rendered noise tile, stamped over the gas each frame via
-       source-atop so grain only shows where the gas itself is drawn. */
-    var noiseTile = document.createElement('canvas');
-    noiseTile.width = 96;
-    noiseTile.height = 96;
-    (function paintNoise() {
-      var nctx = noiseTile.getContext('2d');
-      var img = nctx.createImageData(96, 96);
-      for (var i = 0; i < img.data.length; i += 4) {
-        var v = Math.random() * 255;
-        img.data[i] = v;
-        img.data[i + 1] = v;
-        img.data[i + 2] = v;
-        img.data[i + 3] = Math.random() * 90;
-      }
-      nctx.putImageData(img, 0, 0);
-    })();
-    var noisePattern = ctx.createPattern(noiseTile, 'repeat');
     var lastSpawn = 0;
 
     function resizeCanvas() {
@@ -206,41 +186,33 @@
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    function hexToRgb(hex) {
-      var v = hex.replace('#', '');
-      if (v.length === 3) v = v[0] + v[0] + v[1] + v[1] + v[2] + v[2];
-      return [parseInt(v.substr(0, 2), 16), parseInt(v.substr(2, 2), 16), parseInt(v.substr(4, 2), 16)];
-    }
-    var ionRGB = [100, 255, 218];
-    var signalRGB = [139, 107, 255];
-    function refreshGasColors() {
-      var cs = getComputedStyle(root);
-      var ion = cs.getPropertyValue('--accent').trim();
-      var signal = cs.getPropertyValue('--signal').trim();
-      try { if (ion.indexOf('#') === 0) ionRGB = hexToRgb(ion); } catch (e) {}
-      try { if (signal.indexOf('#') === 0) signalRGB = hexToRgb(signal); } catch (e) {}
-    }
+    /* Spectrum sweeps from the brand blue through violet into warm tones,
+       so it reads as the site's palette rather than a generic rainbow. */
+    var HUE_START = 200;
+    var HUE_SPAN = 170;
+    function refreshGasColors() {} /* kept as a no-op so theme toggle callers stay valid */
     window.__refreshGasColors = refreshGasColors;
-    refreshGasColors();
 
-    var spawnGap = reducedMotion ? 60 : 30;
-    var motionScale = reducedMotion ? 0.35 : 1;
+    var spawnGap = reducedMotion ? 55 : 22;
+    var motionScale = reducedMotion ? 0.4 : 1;
 
     window.addEventListener('pointermove', function (e) {
-      mx = e.clientX;
-      my = e.clientY;
       var now = performance.now();
-      if (now - lastSpawn > spawnGap && particles.length < 110) {
+      if (now - lastSpawn > spawnGap && particles.length < 160) {
         lastSpawn = now;
+        var spin = (0.018 + Math.random() * 0.03) * motionScale;
         particles.push({
-          x: mx + (Math.random() - 0.5) * 14,
-          y: my + (Math.random() - 0.5) * 14,
-          vx: (Math.random() - 0.5) * 0.5 * motionScale,
-          vy: ((Math.random() - 0.5) * 0.5 - 0.15) * motionScale,
-          size: 24 + Math.random() * 30,
+          ox: e.clientX,
+          oy: e.clientY,
+          angle: Math.random() * Math.PI * 2,
+          spin: Math.random() < 0.5 ? spin : -spin,
+          radius: 0,
+          radialSpeed: (0.55 + Math.random() * 1.1) * motionScale,
+          len: 9 + Math.random() * 16,
+          width: 2 + Math.random() * 2,
+          hue: HUE_START + Math.random() * HUE_SPAN,
           born: now,
-          life: 1600 + Math.random() * 900,
-          mix: Math.random()
+          life: 1300 + Math.random() * 900
         });
       }
     }, { passive: true });
@@ -249,39 +221,32 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.globalCompositeOperation = 'lighter';
+      ctx.lineCap = 'round';
+
       for (var i = particles.length - 1; i >= 0; i--) {
         var p = particles[i];
         var age = t - p.born;
         if (age > p.life) { particles.splice(i, 1); continue; }
         var lifeT = age / p.life;
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vx += (Math.random() - 0.5) * 0.06;
-        p.vy += (Math.random() - 0.5) * 0.06 - 0.006;
-        p.vx *= 0.985;
-        p.vy *= 0.985;
 
-        var fade = lifeT < 0.12 ? lifeT / 0.12 : 1 - (lifeT - 0.12) / 0.88;
-        var alpha = Math.max(0, fade) * 0.34;
-        var size = p.size * (1 + lifeT * 1.6);
+        p.angle += p.spin;
+        p.radius += p.radialSpeed;
 
-        var r = Math.round(ionRGB[0] + (signalRGB[0] - ionRGB[0]) * p.mix);
-        var g = Math.round(ionRGB[1] + (signalRGB[1] - ionRGB[1]) * p.mix);
-        var b = Math.round(ionRGB[2] + (signalRGB[2] - ionRGB[2]) * p.mix);
+        var fade = lifeT < 0.1 ? lifeT / 0.1 : 1 - (lifeT - 0.1) / 0.9;
+        var alpha = Math.max(0, fade) * 0.8;
+        var x = p.ox + Math.cos(p.angle) * p.radius;
+        var y = p.oy + Math.sin(p.angle) * p.radius;
 
-        var grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, size);
-        grad.addColorStop(0, 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')');
-        grad.addColorStop(1, 'rgba(' + r + ',' + g + ',' + b + ',0)');
-        ctx.fillStyle = grad;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(p.angle + Math.PI / 2);
+        ctx.strokeStyle = 'hsla(' + p.hue + ', 82%, 66%, ' + alpha + ')';
+        ctx.lineWidth = p.width;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      if (particles.length && noisePattern) {
-        ctx.globalCompositeOperation = 'source-atop';
-        ctx.fillStyle = noisePattern;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.moveTo(-p.len / 2, 0);
+        ctx.lineTo(p.len / 2, 0);
+        ctx.stroke();
+        ctx.restore();
       }
     }
 
