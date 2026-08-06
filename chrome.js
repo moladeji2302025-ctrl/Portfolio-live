@@ -610,6 +610,25 @@
         ax += -(dx / dist) * wave * waveAmp;
         ay += -(dy / dist) * wave * waveAmp;
 
+        /* Amoeba-style deformation for the idle pulse: several angular
+           lobes at incommensurate frequencies, summed and drifting slowly
+           over time, so different parts of the swarm's edge bulge out or
+           draw in at different moments instead of the whole shape
+           breathing as one uniform circle. Still fully coordinated, since
+           it's a smooth continuous function of angle (neighboring
+           particles always get near-identical values), but the combined
+           frequencies never resettle into a repeating, symmetric pattern -
+           reads as organic and unpredictable rather than mechanical. */
+        if (!inTransition) {
+          var pAngle = Math.atan2(p.y - ty, p.x - tx);
+          var blobLobe = Math.sin(pAngle * 2 + t * 0.00065) * 0.5
+            + Math.sin(pAngle * 3 - t * 0.00095 + 1.7) * 0.32
+            + Math.sin(pAngle * 5 + t * 0.00042 + 4.2) * 0.22;
+          var blobPush = idleT * blobLobe * dist * 0.026;
+          ax += -(dx / dist) * blobPush;
+          ay += -(dy / dist) * blobPush;
+        }
+
         /* The traveling burst ring gives an actual outward kick as it
            passes through, on top of the visual glow/size boost below - so
            the wave reads as a physical pulse propagating through the
