@@ -326,7 +326,7 @@
        nudged sideways for a shared swirl. The cluster's form emerges frame
        to frame from those local forces - that's what makes it read as
        fluid rather than a rigid rotating body. */
-    var COUNT = reducedMotion ? 120 : 260;
+    var COUNT = reducedMotion ? 480 : 1040;
     var cx = window.innerWidth / 2;
     var cy = window.innerHeight / 2;
     var particles = [];
@@ -407,7 +407,7 @@
     var swirlK = reducedMotion ? 0.006 : 0.014;
     var repelK = 0.9;
     var damping = 0.86;
-    var baseSpacing = 170;
+    var baseSpacing = 260;
     var loaderSpacing = baseSpacing * 2.1;
 
     function drawGas(t) {
@@ -511,6 +511,20 @@
       ctx.globalCompositeOperation = 'lighter';
       ctx.lineCap = 'round';
 
+      /* Neighbor repulsion is the expensive part - checking every particle
+         against every other one is O(n^2), which gets heavy fast as the
+         count grows. Bucket particles into a grid sized to the current
+         spacing so each particle only has to check the ~9 cells around it
+         instead of the whole swarm. Rebuilt every frame since particles
+         (and spacing itself, via the pulse) keep moving. */
+      var cellSize = Math.max(spacing, 40);
+      var grid = Object.create(null);
+      for (var gi = 0; gi < particles.length; gi++) {
+        var gp = particles[gi];
+        var gkey = (Math.floor(gp.x / cellSize)) + '_' + (Math.floor(gp.y / cellSize));
+        (grid[gkey] || (grid[gkey] = [])).push(gi);
+      }
+
       for (var i = 0; i < particles.length; i++) {
         var p = particles[i];
         var dx = tx - p.x;
@@ -544,17 +558,26 @@
         ax += -(dx / dist) * wave * waveAmp;
         ay += -(dy / dist) * wave * waveAmp;
 
-        for (var j = 0; j < particles.length; j++) {
-          if (j === i) continue;
-          var q = particles[j];
-          var ddx = p.x - q.x;
-          var ddy = p.y - q.y;
-          var d2 = ddx * ddx + ddy * ddy;
-          if (d2 < spacing2 && d2 > 0.0001) {
-            var d = Math.sqrt(d2);
-            var push = (spacing - d) / spacing * repelK;
-            ax += (ddx / d) * push;
-            ay += (ddy / d) * push;
+        var cgx = Math.floor(p.x / cellSize);
+        var cgy = Math.floor(p.y / cellSize);
+        for (var ngx = cgx - 1; ngx <= cgx + 1; ngx++) {
+          for (var ngy = cgy - 1; ngy <= cgy + 1; ngy++) {
+            var cell = grid[ngx + '_' + ngy];
+            if (!cell) continue;
+            for (var ci = 0; ci < cell.length; ci++) {
+              var j = cell[ci];
+              if (j === i) continue;
+              var q = particles[j];
+              var ddx = p.x - q.x;
+              var ddy = p.y - q.y;
+              var d2 = ddx * ddx + ddy * ddy;
+              if (d2 < spacing2 && d2 > 0.0001) {
+                var d = Math.sqrt(d2);
+                var push = (spacing - d) / spacing * repelK;
+                ax += (ddx / d) * push;
+                ay += (ddy / d) * push;
+              }
+            }
           }
         }
 
