@@ -348,16 +348,19 @@ a {
    line-height metrics, and as an inline-block this element's own box
    height feeds directly into the surrounding line box - left alone, that
    made the whole line (and everything below it: the dash rule, the
-   paragraph, the button) nudge up and down as the font cycled. Locking
-   height/line-height to a constant and clipping overflow keeps the rest
-   of the hero completely static regardless of which face is active.
+   paragraph, the button) nudge up and down as the font cycled. inline-
+   flex with align-items:flex-end pins the text to the bottom of that
+   fixed box rather than letting each font's own line-height center it
+   differently, which is what was knocking "Art" out of alignment with
+   "Into" and the bounce-dot after the height got locked - bottom-aligned
+   sits close to the shared text baseline for essentially any Latin font.
    Color is the ordinary body-text color, same as every other word in the
    headline - only the typeface and casing change. */
 .hero-line .brush-word {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
+  align-items: flex-end;
   height: 1em;
-  line-height: 1em;
   overflow: hidden;
   color: var(--text-primary);
   animation: art-style-morph 39s infinite;
