@@ -1038,30 +1038,22 @@ a {
 }
 
 /* ---------- ambient gas trail ---------- */
+/* Light is the site's hard default regardless of OS preference (see
+   isLight() in chrome.js), so the base rule here matches light styling -
+   an OS-preference media query would otherwise fight the JS default on a
+   first visit where no data-theme attribute has been set yet. */
 #gas-canvas {
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  mix-blend-mode: screen;
-  opacity: 1;
-}
-
-@media (prefers-color-scheme: light) {
-  #gas-canvas {
-    mix-blend-mode: multiply;
-    opacity: 0.55;
-  }
+  mix-blend-mode: multiply;
+  opacity: 0.55;
 }
 
 :root[data-theme='dark'] #gas-canvas {
   mix-blend-mode: screen;
   opacity: 1;
-}
-
-:root[data-theme='light'] #gas-canvas {
-  mix-blend-mode: multiply;
-  opacity: 0.55;
 }
 
 /* ---------- theme + sound toggles ---------- */
