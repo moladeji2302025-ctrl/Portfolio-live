@@ -1051,7 +1051,6 @@ a {
   pointer-events: none;
   mix-blend-mode: screen;
   opacity: 1;
-  transition: filter 0.7s ease;
 }
 
 @media (prefers-color-scheme: light) {

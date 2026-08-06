@@ -197,7 +197,7 @@
        nudged sideways for a shared swirl. The cluster's form emerges frame
        to frame from those local forces - that's what makes it read as
        fluid rather than a rigid rotating body. */
-    var COUNT = reducedMotion ? 90 : 190;
+    var COUNT = reducedMotion ? 120 : 260;
     var cx = window.innerWidth / 2;
     var cy = window.innerHeight / 2;
     var particles = [];
@@ -232,7 +232,7 @@
         var bdx = bp.x - cx;
         var bdy = bp.y - cy;
         var bdist = Math.sqrt(bdx * bdx + bdy * bdy) || 0.001;
-        var kick = 9 + Math.random() * 5;
+        var kick = 18 + Math.random() * 9;
         bp.vx += (bdx / bdist) * kick;
         bp.vy += (bdy / bdist) * kick;
       }
@@ -249,20 +249,22 @@
     function drawGas(t) {
       var idleFor = t - lastMoveTime;
       var idleT = Math.max(0, Math.min(1, (idleFor - 600) / 2600));
-      canvas.style.filter = idleT > 0.02 ? 'blur(' + (idleT * 2).toFixed(1) + 'px)' : 'none';
+      var blurPulse = 0.5 + Math.sin(t * 0.0014) * 0.5;
+      var blurAmount = idleT * 2.6 * blurPulse;
+      canvas.style.filter = blurAmount > 0.05 ? 'blur(' + blurAmount.toFixed(1) + 'px)' : 'none';
 
       var hovering = root.classList.contains('cursor-hover');
       hoverBoost += ((hovering ? 1 : 0) - hoverBoost) * 0.12;
 
       var sinceBurst = t - burstAt;
-      var burstT = Math.max(0, Math.min(1, sinceBurst / 900));
+      var burstT = Math.max(0, Math.min(1, sinceBurst / 1250));
       var burstEnergy = sinceBurst >= 0 ? (1 - burstT) * (1 - burstT) : 0;
 
       /* A traveling ripple, not a shared on/off pulse: phase depends on each
          particle's own distance from the cursor, so the wave visibly moves
          outward through the swarm like a shockwave, and clicking spikes its
          amplitude for one big pulse before it settles back to ambient. */
-      var waveAmp = 0.3 + burstEnergy * 1.4;
+      var waveAmp = 0.3 + burstEnergy * 3.2;
       var spacing = baseSpacing * (1 + hoverBoost * 0.7);
       var spacing2 = spacing * spacing;
 
@@ -308,15 +310,15 @@
         var angle = speed > 0.02 ? Math.atan2(p.vy, p.vx) : Math.atan2(cy - p.y, cx - p.x) + Math.PI / 2;
         var hueAngle = Math.atan2(p.y - cy, p.x - cx);
         var hue = HUE_START + ((hueAngle + Math.PI) / (Math.PI * 2)) * HUE_SPAN;
-        var glow = 0.5 + wave * 0.25 + burstEnergy * 0.4;
+        var glow = 0.5 + wave * 0.25 + burstEnergy * 0.9;
         var alpha = (0.3 + Math.min(0.45, speed * 0.9) + glow * 0.2) * (reducedMotion ? 0.75 : 1);
 
         ctx.save();
         ctx.translate(p.x, p.y);
         ctx.rotate(angle);
         ctx.strokeStyle = 'hsla(' + hue + ', 82%, 66%, ' + alpha + ')';
-        ctx.lineWidth = p.width * (1 + burstEnergy * 0.6);
-        var len = p.len * (1 + burstEnergy * 0.8);
+        ctx.lineWidth = p.width * (1 + burstEnergy * 1.3);
+        var len = p.len * (1 + burstEnergy * 2.2);
         ctx.beginPath();
         ctx.moveTo(-len / 2, 0);
         ctx.lineTo(len / 2, 0);
