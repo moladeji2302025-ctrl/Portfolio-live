@@ -291,9 +291,6 @@ a {
 .hero {
   min-height: calc(100vh - var(--nav-height));
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   overflow: hidden;
 }
 
@@ -303,15 +300,22 @@ a {
   background: none;
 }
 
+/* Absolute + translate centering rather than flex/grid auto-margins - it
+   centers purely on this element's own final size relative to .hero,
+   completely sidestepping flex's content-based automatic minimum width
+   (the thing that broke the previous flex-based attempt: a single long
+   word like "IMAGINATION" silently grows a flex item past its max-width
+   unless min-width is overridden, and that grown, unpredictable size is
+   what was throwing the centering off). */
 .hero-inner {
-  position: relative;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   z-index: 2;
   display: grid;
   grid-template-columns: 1fr;
-  width: 100%;
-  max-width: 1100px;
-  min-width: 0;
-  margin-inline: auto;
+  width: min(1100px, calc(100% - 3rem));
   gap: 2rem;
   align-items: center;
   text-align: center;
