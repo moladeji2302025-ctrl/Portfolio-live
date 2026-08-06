@@ -476,8 +476,8 @@
          time from `dist` inside the loop below (BURST_WAVE_SPEED/
          BURST_PULSE_WIDTH), so this is just the shared click clock. */
       var BURST_WAVE_SPEED = 1.6;
-      var BURST_PULSE_WIDTH = 420;
-      var BURST_FORCE = 6;
+      var BURST_PULSE_WIDTH = 340;
+      var BURST_FORCE = 10;
 
       /* A traveling ripple, not a shared on/off pulse: phase depends on each
          particle's own distance from the target, so the wave visibly moves
@@ -549,16 +549,21 @@
 
         /* This particle's own moment in the traveling burst wave: zero
            until the ring (expanding outward from the cursor at
-           BURST_WAVE_SPEED) actually reaches its distance, then a smooth
-           rise-and-fall as the ring passes through, then zero again once
-           it's moved on - never a uniform flash across every particle at
-           once. */
+           BURST_WAVE_SPEED) actually reaches its distance, then a sharp
+           rise as the leading edge of the wave hits it followed by a
+           slower fall as it passes on by - a shockwave crest, not a
+           symmetric blip - so it reads as a lit ridge sweeping outward
+           through the swarm rather than a uniform flash. Zero again once
+           it's moved on. */
         var burstArrival = dist / BURST_WAVE_SPEED;
         var burstLocalT = sinceBurst - burstArrival;
         var burstEnergy = 0;
-        if (sinceBurst >= 0 && burstLocalT > -60 && burstLocalT < BURST_PULSE_WIDTH) {
-          var burstW = Math.max(0, Math.min(1, (burstLocalT + 60) / (BURST_PULSE_WIDTH + 60)));
-          burstEnergy = Math.sin(burstW * Math.PI);
+        if (sinceBurst >= 0 && burstLocalT > -40 && burstLocalT < BURST_PULSE_WIDTH) {
+          var burstW = Math.max(0, Math.min(1, (burstLocalT + 40) / (BURST_PULSE_WIDTH + 40)));
+          var BURST_ATTACK = 0.22;
+          burstEnergy = burstW < BURST_ATTACK
+            ? burstW / BURST_ATTACK
+            : 1 - (burstW - BURST_ATTACK) / (1 - BURST_ATTACK);
         }
 
         var ax = (dx / dist) * pullK * dist * pullMult;
@@ -626,7 +631,7 @@
         var angle = speed > 0.02 ? Math.atan2(p.vy, p.vx) : Math.atan2(ty - p.y, tx - p.x) + Math.PI / 2;
         var hueAngle = Math.atan2(p.y - ty, p.x - tx);
         var hue = HUE_START + ((hueAngle + Math.PI) / (Math.PI * 2)) * HUE_SPAN;
-        var glow = 0.5 + wave * 0.25 + burstEnergy * 0.5;
+        var glow = 0.5 + wave * 0.25 + burstEnergy * 0.9;
         var alpha = (0.3 + Math.min(0.45, speed * 0.9) + glow * 0.2) * (reducedMotion ? 0.75 : 1);
         /* A pale, high-lightness stroke glows against a dark background under
            the "screen" blend mode, but that same pale color has almost no
@@ -636,6 +641,10 @@
            blend mode. */
         var light = isLight();
         var lightness = light ? 40 : 66;
+        /* A specular-style lift as the burst crest passes through, like
+           light catching the ridge of a traveling 3D wave rather than a
+           flat brightness bump. */
+        lightness += burstEnergy * (light ? 22 : 18);
         if (light) alpha = Math.min(1, alpha * 1.6);
 
         /* Full size only lives in a middle "sweet spot" band - particles
@@ -650,8 +659,8 @@
         ctx.translate(p.x, p.y);
         ctx.rotate(angle);
         ctx.strokeStyle = 'hsla(' + hue + ', 82%, ' + lightness + '%, ' + alpha + ')';
-        ctx.lineWidth = p.width * (1 + burstEnergy * 0.2) * sizeMult;
-        var len = p.len * (1 + burstEnergy * 0.25) * sizeMult;
+        ctx.lineWidth = p.width * (1 + burstEnergy * 0.3) * sizeMult;
+        var len = p.len * (1 + burstEnergy * 0.4) * sizeMult;
         ctx.beginPath();
         ctx.moveTo(-len / 2, 0);
         ctx.lineTo(len / 2, 0);
