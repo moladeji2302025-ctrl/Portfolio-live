@@ -342,14 +342,23 @@ a {
 /* "Art" in the markup stays literally "Art" - each of the 39 morph steps
    below supplies its own text-transform (uppercase/capitalize/lowercase)
    to get ART/Art/art, so this no longer forces a fixed casing itself.
-   Sized to its own content (not a fixed box) so the bounce-dot sitting
-   right after it stays as close as the text allows, even though that
-   means its exact pixel position drifts slightly as the font morphs.
+   Sized to its own content horizontally (not a fixed width) so the
+   bounce-dot sitting right after it stays as close as the text allows.
+   Height is fixed, though: the 13 fonts have wildly different internal
+   line-height metrics, and as an inline-block this element's own box
+   height feeds directly into the surrounding line box - left alone, that
+   made the whole line (and everything below it: the dash rule, the
+   paragraph, the button) nudge up and down as the font cycled. Locking
+   height/line-height to a constant and clipping overflow keeps the rest
+   of the hero completely static regardless of which face is active.
    Color is the ordinary body-text color, same as every other word in the
    headline - only the typeface and casing change. */
 .hero-line .brush-word {
   position: relative;
   display: inline-block;
+  height: 1em;
+  line-height: 1em;
+  overflow: hidden;
   color: var(--text-primary);
   animation: art-style-morph 39s infinite;
 }
