@@ -209,7 +209,7 @@
         y: cy + Math.sin(seedAngle) * seedR,
         vx: 0,
         vy: 0,
-        len: 6 + Math.random() * 10,
+        len: 3.5 + Math.random() * 5,
         width: 1.3 + Math.random() * 1.4
       });
     }
@@ -221,21 +221,49 @@
       lastMoveTime = performance.now();
     }, { passive: true });
 
-    var pullK = reducedMotion ? 0.012 : 0.022;
+    /* A click sends every particle flying outward from wherever it stood,
+       then the standing forces below pull the swarm back together on
+       their own - burst decays via the same damping as everything else. */
+    var burstAt = -99999;
+    document.addEventListener('click', function () {
+      burstAt = performance.now();
+      for (var b = 0; b < particles.length; b++) {
+        var bp = particles[b];
+        var bdx = bp.x - cx;
+        var bdy = bp.y - cy;
+        var bdist = Math.sqrt(bdx * bdx + bdy * bdy) || 0.001;
+        var kick = 9 + Math.random() * 5;
+        bp.vx += (bdx / bdist) * kick;
+        bp.vy += (bdy / bdist) * kick;
+      }
+    });
+
+    var hoverBoost = 0;
+
+    var pullK = reducedMotion ? 0.02 : 0.05;
     var swirlK = reducedMotion ? 0.006 : 0.014;
     var repelK = 0.9;
-    var damping = 0.9;
+    var damping = 0.86;
     var baseSpacing = 92;
 
     function drawGas(t) {
       var idleFor = t - lastMoveTime;
       var idleT = Math.max(0, Math.min(1, (idleFor - 600) / 2600));
-      canvas.style.filter = idleT > 0.02 ? 'blur(' + (idleT * 5).toFixed(1) + 'px)' : 'none';
+      canvas.style.filter = idleT > 0.02 ? 'blur(' + (idleT * 2).toFixed(1) + 'px)' : 'none';
 
-      /* Breathing spacing: as the comfortable distance between particles
-         grows and shrinks, repulsion makes the whole swarm expand and
-         contract together - an emergent pulse, not a scale multiplier. */
-      var spacing = baseSpacing * (1 + Math.sin(t * 0.00075) * 0.4);
+      var hovering = root.classList.contains('cursor-hover');
+      hoverBoost += ((hovering ? 1 : 0) - hoverBoost) * 0.12;
+
+      var sinceBurst = t - burstAt;
+      var burstT = Math.max(0, Math.min(1, sinceBurst / 900));
+      var burstEnergy = sinceBurst >= 0 ? (1 - burstT) * (1 - burstT) : 0;
+
+      /* A traveling ripple, not a shared on/off pulse: phase depends on each
+         particle's own distance from the cursor, so the wave visibly moves
+         outward through the swarm like a shockwave, and clicking spikes its
+         amplitude for one big pulse before it settles back to ambient. */
+      var waveAmp = 0.3 + burstEnergy * 1.4;
+      var spacing = baseSpacing * (1 + hoverBoost * 0.7);
       var spacing2 = spacing * spacing;
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -248,11 +276,14 @@
         var dx = cx - p.x;
         var dy = cy - p.y;
         var dist = Math.sqrt(dx * dx + dy * dy) || 0.001;
+        var wave = Math.sin(t * 0.0032 - dist * 0.045);
 
         var ax = (dx / dist) * pullK * dist;
         var ay = (dy / dist) * pullK * dist;
         ax += (-dy / dist) * swirlK * Math.min(dist, 340);
         ay += (dx / dist) * swirlK * Math.min(dist, 340);
+        ax += -(dx / dist) * wave * waveAmp;
+        ay += -(dy / dist) * wave * waveAmp;
 
         for (var j = 0; j < particles.length; j++) {
           if (j === i) continue;
@@ -277,16 +308,18 @@
         var angle = speed > 0.02 ? Math.atan2(p.vy, p.vx) : Math.atan2(cy - p.y, cx - p.x) + Math.PI / 2;
         var hueAngle = Math.atan2(p.y - cy, p.x - cx);
         var hue = HUE_START + ((hueAngle + Math.PI) / (Math.PI * 2)) * HUE_SPAN;
-        var alpha = (0.35 + Math.min(0.4, speed * 0.9)) * (reducedMotion ? 0.75 : 1);
+        var glow = 0.5 + wave * 0.25 + burstEnergy * 0.4;
+        var alpha = (0.3 + Math.min(0.45, speed * 0.9) + glow * 0.2) * (reducedMotion ? 0.75 : 1);
 
         ctx.save();
         ctx.translate(p.x, p.y);
         ctx.rotate(angle);
         ctx.strokeStyle = 'hsla(' + hue + ', 82%, 66%, ' + alpha + ')';
-        ctx.lineWidth = p.width;
+        ctx.lineWidth = p.width * (1 + burstEnergy * 0.6);
+        var len = p.len * (1 + burstEnergy * 0.8);
         ctx.beginPath();
-        ctx.moveTo(-p.len / 2, 0);
-        ctx.lineTo(p.len / 2, 0);
+        ctx.moveTo(-len / 2, 0);
+        ctx.lineTo(len / 2, 0);
         ctx.stroke();
         ctx.restore();
       }
