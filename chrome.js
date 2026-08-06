@@ -47,26 +47,35 @@
     if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
     return audioCtx;
   }
-  function tone(freqStart, freqEnd, duration, type, peak, delay) {
+  /* Soft bell-like chime: a steady sine fundamental plus a quiet overtone,
+     both with a gentle attack and a long smooth decay - a click is a sharp
+     transient with a hard cutoff; this rings out instead. */
+  function chime(freq, duration, peak, delay, overtone) {
     if (!soundOn) return;
     var ctx = ensureAudio();
     if (!ctx) return;
     var t0 = ctx.currentTime + (delay || 0);
-    var osc = ctx.createOscillator();
-    var gain = ctx.createGain();
-    osc.type = type || 'sine';
-    osc.frequency.setValueAtTime(freqStart, t0);
-    osc.frequency.exponentialRampToValueAtTime(Math.max(freqEnd, 1), t0 + duration);
-    gain.gain.setValueAtTime(0.0001, t0);
-    gain.gain.exponentialRampToValueAtTime(peak || 0.05, t0 + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
-    osc.connect(gain).connect(ctx.destination);
-    osc.start(t0);
-    osc.stop(t0 + duration + 0.03);
+    var attack = 0.025;
+
+    function partial(f, gainScale) {
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(f, t0);
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.linearRampToValueAtTime(peak * gainScale, t0 + attack);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + attack + duration);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t0);
+      osc.stop(t0 + attack + duration + 0.05);
+    }
+
+    partial(freq, 1);
+    if (overtone) partial(freq * overtone, 0.3);
   }
-  function playHover() { tone(760, 1020, 0.06, 'sine', 0.022); }
-  function playSelect() { tone(640, 640, 0.045, 'triangle', 0.04); tone(980, 980, 0.09, 'triangle', 0.035, 0.05); }
-  function playToggle() { tone(300, 920, 0.035, 'square', 0.014); }
+  function playHover() { chime(880, 0.14, 0.018, 0, 2); }
+  function playSelect() { chime(659, 0.2, 0.045, 0, 1.5); chime(988, 0.26, 0.032, 0.055, 1.5); }
+  function playToggle() { chime(523, 0.22, 0.04, 0, 2); }
 
   document.addEventListener('pointerdown', function unlock() {
     ensureAudio();
