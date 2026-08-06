@@ -1,7 +1,7 @@
 :root {
   color-scheme: dark;
   --bg: #06080f;
-  --bg-alt: #0b0e18;
+  --bg-alt: rgba(11, 14, 24, 0.86);
   --surface: rgba(255, 255, 255, 0.035);
   --border: rgba(255, 255, 255, 0.09);
   --text-primary: #f3f5f9;
@@ -21,7 +21,7 @@
   :root {
     color-scheme: light;
     --bg: #faf9fb;
-    --bg-alt: #f1f0f4;
+    --bg-alt: rgba(241, 240, 244, 0.86);
     --surface: rgba(10, 12, 20, 0.03);
     --border: rgba(10, 12, 20, 0.09);
     --text-primary: #12141b;
@@ -39,7 +39,7 @@
 :root[data-theme='dark'] {
   color-scheme: dark;
   --bg: #06080f;
-  --bg-alt: #0b0e18;
+  --bg-alt: rgba(11, 14, 24, 0.86);
   --surface: rgba(255, 255, 255, 0.035);
   --border: rgba(255, 255, 255, 0.09);
   --text-primary: #f3f5f9;
@@ -56,7 +56,7 @@
 :root[data-theme='light'] {
   color-scheme: light;
   --bg: #faf9fb;
-  --bg-alt: #f1f0f4;
+  --bg-alt: rgba(241, 240, 244, 0.86);
   --surface: rgba(10, 12, 20, 0.03);
   --border: rgba(10, 12, 20, 0.09);
   --text-primary: #12141b;
@@ -114,6 +114,8 @@ a {
 
 .section-alt {
   background: var(--bg-alt);
+  backdrop-filter: blur(26px);
+  -webkit-backdrop-filter: blur(26px);
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
 }
@@ -314,8 +316,7 @@ a {
 .hero-bg {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to right, rgba(0, 0, 0, 0.85) 40%, rgba(0, 0, 0, 0.3) 100%), url('projects/WhatsApp Image 2026-04-26 at 20.19.54.jpeg') center/cover no-repeat;
-  animation: kenburns 10s ease-in-out infinite alternate;
+  background: none;
 }
 
 .hero-inner {
@@ -480,6 +481,8 @@ a {
 .faq-item,
 .testimonial-card {
   background: var(--surface);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   border: 1px solid var(--border);
 }
 
@@ -577,6 +580,8 @@ a {
   overflow: hidden;
   min-height: 270px;
   background: var(--surface);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   transition: transform 0.35s ease, opacity 0.35s ease;
 }
 
@@ -645,6 +650,8 @@ a {
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   background: var(--bg-alt);
+  backdrop-filter: blur(26px);
+  -webkit-backdrop-filter: blur(26px);
 }
 
 .stats-grid {
@@ -694,6 +701,8 @@ a {
 .process-item {
   position: relative;
   background: var(--surface);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   border: 1px solid var(--border);
   padding: 1.4rem;
 }
@@ -711,6 +720,8 @@ a {
   padding: 3rem 1rem;
   border: 1px solid var(--border);
   background: var(--bg-alt);
+  backdrop-filter: blur(26px);
+  -webkit-backdrop-filter: blur(26px);
 }
 
 .newsletter {
@@ -1206,12 +1217,16 @@ a {
   min-height: 54vh;
   align-items: end;
   background: var(--bg-alt);
+  backdrop-filter: blur(26px);
+  -webkit-backdrop-filter: blur(26px);
   border-bottom: 1px solid var(--border);
 }
 
 .detail-visual {
   border: 1px solid var(--border);
   background: var(--surface);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .detail-media {
@@ -1573,6 +1588,8 @@ a {
   height: 220px;
   border-radius: 20px;
   background: var(--surface);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   border: 1px solid var(--border);
   position: relative;
   display: block;
