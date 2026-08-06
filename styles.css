@@ -3,7 +3,7 @@
      dark is opt-in only, applied below via [data-theme='dark']. */
   color-scheme: light;
   --bg: #faf9fb;
-  --bg-alt: rgba(241, 240, 244, 0.6);
+  --bg-alt: rgba(241, 240, 244, 0.38);
   --surface: rgba(10, 12, 20, 0.03);
   --border: rgba(10, 12, 20, 0.09);
   --text-primary: #12141b;
@@ -22,7 +22,7 @@
 :root[data-theme='dark'] {
   color-scheme: dark;
   --bg: #070707;
-  --bg-alt: rgba(16, 16, 16, 0.6);
+  --bg-alt: rgba(16, 16, 16, 0.38);
   --surface: rgba(255, 255, 255, 0.035);
   --border: rgba(255, 255, 255, 0.09);
   --text-primary: #f2f2f3;
@@ -39,7 +39,7 @@
 :root[data-theme='light'] {
   color-scheme: light;
   --bg: #faf9fb;
-  --bg-alt: rgba(241, 240, 244, 0.6);
+  --bg-alt: rgba(241, 240, 244, 0.38);
   --surface: rgba(10, 12, 20, 0.03);
   --border: rgba(10, 12, 20, 0.09);
   --text-primary: #12141b;
@@ -97,8 +97,8 @@ a {
 
 .section-alt {
   background: var(--bg-alt);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
 }
@@ -633,8 +633,8 @@ a {
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   background: var(--bg-alt);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
 }
 
 .stats-grid {
@@ -703,8 +703,8 @@ a {
   padding: 3rem 1rem;
   border: 1px solid var(--border);
   background: var(--bg-alt);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
 }
 
 .newsletter {
@@ -1197,8 +1197,8 @@ a {
   min-height: 54vh;
   align-items: end;
   background: var(--bg-alt);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   border-bottom: 1px solid var(--border);
 }
 
