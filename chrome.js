@@ -468,16 +468,21 @@
       var hovering = root.classList.contains('cursor-hover');
       hoverBoost += ((hovering ? 1 : 0) - hoverBoost) * 0.12;
 
-      var sinceBurst = t - burstAt;
       /* A click's energy pulse is a genuine traveling wavefront, not a
          shared on/off flash: it reaches particles closest to the cursor
          first and arrives at farther ones later, timed by distance over a
          fixed propagation speed. Each particle computes its own arrival
          time from `dist` inside the loop below (BURST_WAVE_SPEED/
-         BURST_PULSE_WIDTH), so this is just the shared click clock. */
+         BURST_PULSE_WIDTH), so this is just the shared click clock. Two
+         rings fire in succession from the same click, offset by
+         BURST_SECOND_DELAY - a double pulse rather than one. */
       var BURST_WAVE_SPEED = 1.6;
       var BURST_PULSE_WIDTH = 340;
       var BURST_FORCE = 10;
+      var BURST_ATTACK = 0.22;
+      var BURST_SECOND_DELAY = 260;
+      var sinceBurst = t - burstAt;
+      var sinceBurst2 = t - (burstAt + BURST_SECOND_DELAY);
 
       /* A traveling ripple, not a shared on/off pulse: phase depends on each
          particle's own distance from the target, so the wave visibly moves
@@ -556,14 +561,21 @@
            through the swarm rather than a uniform flash. Zero again once
            it's moved on. */
         var burstArrival = dist / BURST_WAVE_SPEED;
-        var burstLocalT = sinceBurst - burstArrival;
         var burstEnergy = 0;
+        var burstLocalT = sinceBurst - burstArrival;
         if (sinceBurst >= 0 && burstLocalT > -40 && burstLocalT < BURST_PULSE_WIDTH) {
           var burstW = Math.max(0, Math.min(1, (burstLocalT + 40) / (BURST_PULSE_WIDTH + 40)));
-          var BURST_ATTACK = 0.22;
           burstEnergy = burstW < BURST_ATTACK
             ? burstW / BURST_ATTACK
             : 1 - (burstW - BURST_ATTACK) / (1 - BURST_ATTACK);
+        }
+        var burstLocalT2 = sinceBurst2 - burstArrival;
+        if (sinceBurst2 >= 0 && burstLocalT2 > -40 && burstLocalT2 < BURST_PULSE_WIDTH) {
+          var burstW2 = Math.max(0, Math.min(1, (burstLocalT2 + 40) / (BURST_PULSE_WIDTH + 40)));
+          var burstEnergy2 = burstW2 < BURST_ATTACK
+            ? burstW2 / BURST_ATTACK
+            : 1 - (burstW2 - BURST_ATTACK) / (1 - BURST_ATTACK);
+          if (burstEnergy2 > burstEnergy) burstEnergy = burstEnergy2;
         }
 
         var ax = (dx / dist) * pullK * dist * pullMult;
