@@ -469,18 +469,25 @@
       hoverBoost += ((hovering ? 1 : 0) - hoverBoost) * 0.12;
 
       var sinceBurst = t - burstAt;
-      var burstT = Math.max(0, Math.min(1, sinceBurst / 1250));
-      var burstEnergy = sinceBurst >= 0 ? (1 - burstT) * (1 - burstT) : 0;
+      /* A click's energy pulse is a genuine traveling wavefront, not a
+         shared on/off flash: it reaches particles closest to the cursor
+         first and arrives at farther ones later, timed by distance over a
+         fixed propagation speed. Each particle computes its own arrival
+         time from `dist` inside the loop below (BURST_WAVE_SPEED/
+         BURST_PULSE_WIDTH), so this is just the shared click clock. */
+      var BURST_WAVE_SPEED = 1.6;
+      var BURST_PULSE_WIDTH = 240;
+      var BURST_FORCE = 15;
 
       /* A traveling ripple, not a shared on/off pulse: phase depends on each
          particle's own distance from the target, so the wave visibly moves
          outward through the swarm like a shockwave. During a page-transition
          load it runs wider and stronger, reading as deliberate energy waves
-         rather than the subtler ambient/click ripple. */
+         rather than the subtler ambient ripple. */
       var target = loaderCenter || { x: cx, y: cy };
       var tx = target.x;
       var ty = target.y;
-      var waveAmp = inTransition ? 1.5 : (0.3 + burstEnergy * 3.2);
+      var waveAmp = inTransition ? 1.5 : 0.3;
       var waveSpatialFreq = inTransition ? 0.022 : 0.045;
       var waveTimeFreq = inTransition ? 0.0046 : 0.0032;
       /* During the load state the comfortable spacing itself breathes -
@@ -540,6 +547,20 @@
         var dist = Math.sqrt(dx * dx + dy * dy) || 0.001;
         var wave = Math.sin(t * waveTimeFreq - dist * waveSpatialFreq);
 
+        /* This particle's own moment in the traveling burst wave: zero
+           until the ring (expanding outward from the cursor at
+           BURST_WAVE_SPEED) actually reaches its distance, then a smooth
+           rise-and-fall as the ring passes through, then zero again once
+           it's moved on - never a uniform flash across every particle at
+           once. */
+        var burstArrival = dist / BURST_WAVE_SPEED;
+        var burstLocalT = sinceBurst - burstArrival;
+        var burstEnergy = 0;
+        if (sinceBurst >= 0 && burstLocalT > -60 && burstLocalT < BURST_PULSE_WIDTH) {
+          var burstW = Math.max(0, Math.min(1, (burstLocalT + 60) / (BURST_PULSE_WIDTH + 60)));
+          burstEnergy = Math.sin(burstW * Math.PI);
+        }
+
         var ax = (dx / dist) * pullK * dist * pullMult;
         var ay = (dy / dist) * pullK * dist * pullMult;
         ax += (-dy / dist) * swirlK * Math.min(dist, 340) * pullMult;
@@ -565,6 +586,13 @@
 
         ax += -(dx / dist) * wave * waveAmp;
         ay += -(dy / dist) * wave * waveAmp;
+
+        /* The traveling burst ring gives an actual outward kick as it
+           passes through, on top of the visual glow/size boost below - so
+           the wave reads as a physical pulse propagating through the
+           swarm, not just a brightness effect. */
+        ax += -(dx / dist) * burstEnergy * BURST_FORCE;
+        ay += -(dy / dist) * burstEnergy * BURST_FORCE;
 
         var cgx = Math.floor(p.x / cellSize);
         var cgy = Math.floor(p.y / cellSize);
