@@ -21,18 +21,18 @@
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #06080f;
-  --bg-alt: rgba(11, 14, 24, 0.86);
+  --bg: #070707;
+  --bg-alt: rgba(16, 16, 16, 0.86);
   --surface: rgba(255, 255, 255, 0.035);
   --border: rgba(255, 255, 255, 0.09);
-  --text-primary: #f3f5f9;
-  --text-muted: #838ca0;
+  --text-primary: #f2f2f3;
+  --text-muted: #8c8f95;
   --accent: #4fd8ff;
   --accent-glow: rgba(79, 216, 255, 0.18);
   --signal: #8b6bff;
   --danger: #ff8f8f;
-  --header-bg: rgba(6, 8, 15, 0.82);
-  --overlay-bg: rgba(6, 8, 15, 0.97);
+  --header-bg: rgba(5, 5, 5, 0.82);
+  --overlay-bg: rgba(5, 5, 5, 0.97);
   --white: #ffffff;
 }
 

@@ -203,6 +203,7 @@
     root.classList.add('has-custom-cursor');
     var cx = window.innerWidth / 2, cy = window.innerHeight / 2;
     var ringX = cx, ringY = cy;
+    var dotX = cx, dotY = cy;
     var shown = false;
 
     window.addEventListener('pointermove', function (e) {
@@ -211,11 +212,8 @@
       if (!shown) {
         shown = true;
         ringX = cx; ringY = cy;
+        dotX = cx; dotY = cy;
         root.classList.add('cursor-visible');
-      }
-      if (cursorDot) {
-        cursorDot.style.left = cx + 'px';
-        cursorDot.style.top = cy + 'px';
       }
     }, { passive: true });
 
@@ -226,13 +224,13 @@
 
     var magnets = document.querySelectorAll('.btn-primary, .nav-cta, .menu-toggle, .theme-switch, #sound-toggle, .arrow-btn');
 
-    /* Pulls the cursor ring's target point toward the nearest magnetic
-       button once the raw cursor is within range of it, strongest right at
-       the edge and fading to nothing at the range limit - a proximity
-       magnet, not a snap, and only for the ring (the dot stays exact so
-       clicking still feels precise). */
+    /* Pulls the cursor toward the exact center of the nearest magnetic
+       button once the raw cursor is within range of it - a curved ramp
+       (not linear) so the pull builds gently at range and gathers strongly
+       right up to the button, letting the ring genuinely settle near its
+       center rather than just nudging toward it. */
     function magnetOffsetFor(px, py) {
-      var range = 70;
+      var range = 90;
       var best = null;
       for (var m = 0; m < magnets.length; m++) {
         var r = magnets[m].getBoundingClientRect();
@@ -242,18 +240,26 @@
         if (edgeDist < range && (!best || edgeDist < best.d)) best = { x: ex, y: ey, d: edgeDist };
       }
       if (!best) return { x: 0, y: 0 };
-      var strength = (1 - best.d / range) * 0.4;
+      var t = 1 - best.d / range;
+      var strength = t * t * 0.82;
       return { x: (best.x - px) * strength, y: (best.y - py) * strength };
     }
 
-    (function tickRing() {
-      var ease = reducedMotion ? 1 : 0.16;
+    (function tickCursor() {
+      var ringEase = reducedMotion ? 1 : 0.16;
+      var dotEase = reducedMotion ? 1 : 0.4;
       var magnet = reducedMotion ? { x: 0, y: 0 } : magnetOffsetFor(cx, cy);
-      ringX += (cx + magnet.x - ringX) * ease;
-      ringY += (cy + magnet.y - ringY) * ease;
+      ringX += (cx + magnet.x - ringX) * ringEase;
+      ringY += (cy + magnet.y - ringY) * ringEase;
+      dotX += (cx + magnet.x * 0.6 - dotX) * dotEase;
+      dotY += (cy + magnet.y * 0.6 - dotY) * dotEase;
       cursorRing.style.left = ringX + 'px';
       cursorRing.style.top = ringY + 'px';
-      requestAnimationFrame(tickRing);
+      if (cursorDot) {
+        cursorDot.style.left = dotX + 'px';
+        cursorDot.style.top = dotY + 'px';
+      }
+      requestAnimationFrame(tickCursor);
     })();
 
     var CURSOR_HOVER_SELECTOR = 'a, button, .tile, .project-card, .filter-btn, .faq-trigger, .arrow-btn, .dot, input, textarea';
