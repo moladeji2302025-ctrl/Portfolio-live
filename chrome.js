@@ -120,21 +120,18 @@
   function playTap() { chime(392, 0.5, 0.03, 0, 2); }
 
   /* A quiet, ever-continuing tune, one note per click anywhere on the
-     site (layered under whatever click sound also plays) - a warm
-     pentatonic scale, so any order of notes still sounds musical, with
-     each step wandering up or down by a small random interval rather
-     than marching straight up or down the scale, so it reads as a loose
-     melody instead of a scale exercise. Runs well under the other
-     sounds in volume so it stays a soft ambient thread, not a jingle. */
+     site - any interactive element or empty space alike, layered under
+     whatever click sound also plays. A warm pentatonic scale, so no
+     matter which note lands next it still sounds musical, picked fully
+     at random each time rather than stepping through the scale in
+     order. Runs well under the other sounds in volume so it stays a
+     soft ambient thread, not a jingle. */
   var TUNE_SCALE = [392.00, 440.00, 523.25, 587.33, 659.25, 783.99];
-  var tuneIndex = 2;
   function playTuneNote() {
     if (!soundOn) return;
     var ctx = ensureAudio();
     if (!ctx) return;
-    var step = [-2, -1, -1, 1, 1, 2][Math.floor(Math.random() * 6)];
-    tuneIndex = Math.max(0, Math.min(TUNE_SCALE.length - 1, tuneIndex + step));
-    var freq = TUNE_SCALE[tuneIndex];
+    var freq = TUNE_SCALE[Math.floor(Math.random() * TUNE_SCALE.length)];
     var t0 = ctx.currentTime;
     var osc = ctx.createOscillator();
     var gain = ctx.createGain();
