@@ -339,9 +339,20 @@
         vx: 0,
         vy: 0,
         len: 3.5 + Math.random() * 5,
-        width: 1.3 + Math.random() * 1.4
+        width: 1.3 + Math.random() * 1.4,
+        wobblePhase: Math.random() * Math.PI * 2,
+        wobbleFreq: 0.6 + Math.random() * 0.8
       });
     }
+
+    /* Tracks how fast the target itself is moving, smoothed frame to frame.
+       Used to break the swarm's shape out of a symmetric ring while it's
+       actively traveling (a flock stretches and jitters in flight) and let
+       it settle back into the round rest formation as soon as it stops -
+       nothing to do with the load-state transition, which has its own
+       fixed target and isn't affected by this. */
+    var prevTx = cx, prevTy = cy;
+    var smoothVX = 0, smoothVY = 0;
 
     var lastMoveTime = -99999;
     window.addEventListener('pointermove', function (e) {
@@ -472,6 +483,29 @@
       var spacing2 = spacing * spacing;
       var pullMult = convergeMult * releaseMult;
 
+      /* Break the swarm out of a symmetric ring while the target is
+         actually traveling - a flock stretches and flutters in flight, not
+         while it's holding position. Speed fades this back out on its own,
+         so stopping lets the shared attraction/repulsion/swirl below settle
+         it back into the round rest formation with no separate "return"
+         logic needed. Has no effect during the load-state transition, since
+         its target doesn't move. */
+      var rawVX = tx - prevTx;
+      var rawVY = ty - prevTy;
+      prevTx = tx;
+      prevTy = ty;
+      if (inTransition) {
+        smoothVX = 0;
+        smoothVY = 0;
+      } else {
+        smoothVX += (rawVX - smoothVX) * 0.18;
+        smoothVY += (rawVY - smoothVY) * 0.18;
+      }
+      var moveSpeed = Math.hypot(smoothVX, smoothVY);
+      var speedFactor = Math.min(1, moveSpeed / 22);
+      var moveDirX = moveSpeed > 0.01 ? smoothVX / moveSpeed : 0;
+      var moveDirY = moveSpeed > 0.01 ? smoothVY / moveSpeed : 0;
+
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.globalCompositeOperation = 'lighter';
@@ -488,6 +522,25 @@
         var ay = (dy / dist) * pullK * dist * pullMult;
         ax += (-dy / dist) * swirlK * Math.min(dist, 340) * pullMult;
         ay += (dx / dist) * swirlK * Math.min(dist, 340) * pullMult;
+
+        if (speedFactor > 0.001) {
+          /* Particles trailing behind the direction of travel get less pull
+             (they drag, like the back of a flock), particles leading get to
+             keep theirs - an asymmetric, elongated shape instead of a ring. */
+          var alongMove = (p.x - tx) * moveDirX + (p.y - ty) * moveDirY;
+          var trailBias = Math.max(0, -alongMove) / (dist + 40);
+          var pullTrail = 1 - Math.min(0.72, trailBias * speedFactor * 2.1);
+          ax *= pullTrail;
+          ay *= pullTrail;
+
+          /* Independent per-particle flutter, each on its own phase, scaled
+             by how fast the swarm is traveling - the "insects/birds" quality
+             that keeps the whole group from moving as one rigid piece. */
+          var flutter = Math.sin(t * 0.006 * p.wobbleFreq + p.wobblePhase) * speedFactor * 1.7;
+          ax += (-dy / dist) * flutter;
+          ay += (dx / dist) * flutter;
+        }
+
         ax += -(dx / dist) * wave * waveAmp;
         ay += -(dy / dist) * wave * waveAmp;
 
