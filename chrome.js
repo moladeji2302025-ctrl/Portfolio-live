@@ -331,26 +331,39 @@
     var cy = window.innerHeight / 2;
     var particles = [];
     for (var i = 0; i < COUNT; i++) {
-      var seedAngle = Math.random() * Math.PI * 2;
-      var seedR = Math.random() * 260;
+      var frac = (i + 0.5) / COUNT;
       particles.push({
-        x: cx + Math.cos(seedAngle) * seedR,
-        y: cy + Math.sin(seedAngle) * seedR,
-        vx: 0,
-        vy: 0,
         len: 3.5 + Math.random() * 5,
         width: 1.3 + Math.random() * 1.4,
-        wobblePhase: Math.random() * Math.PI * 2,
-        wobbleFreq: 0.6 + Math.random() * 0.8
+        /* Fixed spot on a Fibonacci-distributed sphere shell - position is
+           computed fresh every frame from this plus the shared rotation, not
+           simulated with persistent velocity, so this works identically for
+           the cursor-follow swarm and the load-state blob alike. */
+        theta: Math.PI * (1 + Math.sqrt(5)) * i,
+        phi: Math.acos(1 - 2 * frac),
+        radiusJitter: 0.72 + Math.random() * 0.56,
+        noisePhaseA: Math.random() * Math.PI * 2,
+        noiseFreqA: 0.5 + Math.random() * 0.5,
+        noisePhaseB: Math.random() * Math.PI * 2,
+        noiseFreqB: 0.9 + Math.random() * 0.6
       });
     }
+    /* Reused every frame (mutated in place, not reallocated) to hold each
+       particle's projected screen position so it can be depth-sorted before
+       drawing - near particles must be painted over far ones for the solid
+       "3D object" read, not a flat cloud of dots. */
+    var blobProjected = [];
+    for (var pj = 0; pj < COUNT; pj++) blobProjected.push({ p: null, x: 0, y: 0, depthT: 0 });
+    var blobRotation = 0;
+    var blobTilt = 0;
+    var BLOB_RADIUS = 190;
+    var BLOB_FOCAL = 340;
 
     /* Tracks how fast the target itself is moving, smoothed frame to frame.
-       Used to break the swarm's shape out of a symmetric ring while it's
-       actively traveling (a flock stretches and jitters in flight) and let
-       it settle back into the round rest formation as soon as it stops -
-       nothing to do with the load-state transition, which has its own
-       fixed target and isn't affected by this. */
+       Drives the blob's spin speed and its directional stretch while
+       actually traveling - it has no effect during the load-state
+       transition, since that target is fixed and speed naturally stays
+       at zero. */
     var prevTx = cx, prevTy = cy;
     var smoothVX = 0, smoothVY = 0;
 
@@ -361,32 +374,17 @@
       lastMoveTime = performance.now();
     }, { passive: true });
 
-    /* A click (or a page-transition reveal) sends every particle flying
-       outward from wherever the swarm was centered, then the standing
-       forces below pull it back together on their own - the burst decays
-       via the same damping as everything else. */
+    /* Both a click and a page-transition reveal just mark a moment in time -
+       burstEnergy (derived below) decays from it and drives a radius/glow
+       bloom in the renderer, rather than pushing particles around directly. */
     var burstAt = -99999;
-    function burstNow() {
-      var origin = loaderCenter || { x: cx, y: cy };
-      burstAt = performance.now();
-      for (var b = 0; b < particles.length; b++) {
-        var bp = particles[b];
-        var bdx = bp.x - origin.x;
-        var bdy = bp.y - origin.y;
-        var bdist = Math.sqrt(bdx * bdx + bdy * bdy) || 0.001;
-        var kick = 18 + Math.random() * 9;
-        bp.vx += (bdx / bdist) * kick;
-        bp.vy += (bdy / bdist) * kick;
-      }
-    }
+    function burstNow() { burstAt = performance.now(); }
     document.addEventListener('click', burstNow);
     triggerBurst = burstNow;
 
-    /* The page-transition reveal doesn't want the click burst's sharp
-       outward kick - it wants the swarm to just let go of the center and
-       drift apart on its own. Fading the pull force toward zero over time
-       and leaning on the ever-present repulsion between particles to do
-       the actual separating reads as a soft release, not an explosion. */
+    /* The page-transition reveal wants a soft bloom-and-dissolve, not a
+       sharp explosion: the blob expands and fades over this duration while
+       blur ramps up, rather than particles being kicked outward. */
     var releasing = false;
     var releaseStart = 0;
     var RELEASE_DURATION = 1900;
@@ -396,25 +394,17 @@
     }
     triggerGentleRelease = gentleRelease;
 
-    /* Easing the pull in on arrival too, so the swarm gathers into the
-       center smoothly instead of snapping straight to it. */
+    /* Easing the pull in on arrival so the blob condenses into being
+       smoothly instead of popping in at full size. */
     var convergeStart = null;
     var CONVERGE_DURATION = 1100;
 
     var hoverBoost = 0;
-
-    var pullK = reducedMotion ? 0.02 : 0.05;
-    var swirlK = reducedMotion ? 0.006 : 0.014;
-    var repelK = 0.9;
-    var damping = 0.86;
-    var baseSpacing = 260;
-    var loaderSpacing = baseSpacing * 2.1;
+    var baseSpin = reducedMotion ? 0.0009 : 0.0016;
 
     function drawGas(t) {
       var inTransition = !!loaderCenter;
 
-      /* Finish an in-progress release: fade the pull to zero, then hand
-         back to normal cursor-follow. */
       var releaseMult = 1;
       var releaseT = 0;
       if (releasing) {
@@ -428,8 +418,6 @@
         }
       }
 
-      /* Ease the pull in on arrival so the swarm gathers smoothly instead
-         of snapping straight to the center. */
       var convergeMult = 1;
       if (inTransition && !releasing) {
         if (convergeStart === null) convergeStart = t;
@@ -440,13 +428,11 @@
       }
 
       if (releasing) {
-        /* Blur ramps up hard as the swarm disperses, so it visibly
-           dissolves away rather than just scattering while staying sharp. */
+        /* Blur ramps up hard as the blob disperses, so it visibly
+           dissolves away rather than just shrinking while staying sharp. */
         var disperseBlur = 0.9 + Math.pow(releaseT, 1.4) * 13;
         canvas.style.filter = 'blur(' + disperseBlur.toFixed(1) + 'px)';
       } else if (inTransition) {
-        /* Just a whisper of blur breathing with the energy wave, not the
-           fuller idle blur - the load state should read as mostly sharp. */
         var loaderBlur = (0.5 + Math.sin(t * 0.0023) * 0.5) * 0.9;
         canvas.style.filter = loaderBlur > 0.05 ? 'blur(' + loaderBlur.toFixed(1) + 'px)' : 'none';
       } else {
@@ -464,32 +450,15 @@
       var burstT = Math.max(0, Math.min(1, sinceBurst / 1250));
       var burstEnergy = sinceBurst >= 0 ? (1 - burstT) * (1 - burstT) : 0;
 
-      /* A traveling ripple, not a shared on/off pulse: phase depends on each
-         particle's own distance from the target, so the wave visibly moves
-         outward through the swarm like a shockwave. During a page-transition
-         load it runs wider and stronger, reading as deliberate energy waves
-         rather than the subtler ambient/click ripple. */
       var target = loaderCenter || { x: cx, y: cy };
       var tx = target.x;
       var ty = target.y;
-      var waveAmp = inTransition ? 1.5 : (0.3 + burstEnergy * 3.2);
-      var waveSpatialFreq = inTransition ? 0.022 : 0.045;
-      var waveTimeFreq = inTransition ? 0.0046 : 0.0032;
-      /* During the load state the comfortable spacing itself breathes -
-         shrinks in tight, then expands back out - on top of the wider
-         base distance, rather than staying at one fixed width. */
-      var loaderSpacingPulse = inTransition ? 0.4 + (0.5 + Math.sin(t * 0.0016) * 0.5) * 0.9 : 1;
-      var spacing = (inTransition ? loaderSpacing * loaderSpacingPulse : baseSpacing) * (1 + hoverBoost * 0.7);
-      var spacing2 = spacing * spacing;
-      var pullMult = convergeMult * releaseMult;
 
-      /* Break the swarm out of a symmetric ring while the target is
-         actually traveling - a flock stretches and flutters in flight, not
-         while it's holding position. Speed fades this back out on its own,
-         so stopping lets the shared attraction/repulsion/swirl below settle
-         it back into the round rest formation with no separate "return"
-         logic needed. Has no effect during the load-state transition, since
-         its target doesn't move. */
+      /* Speed of the target itself feeds the blob's spin rate and its
+         directional stretch below - stationary means a slow ambient tumble,
+         moving fast means a quicker spin and an elongated, thrown-forward
+         silhouette. Zeroed during the load-state transition since that
+         target never moves. */
       var rawVX = tx - prevTx;
       var rawVY = ty - prevTy;
       prevTx = tx;
@@ -506,108 +475,104 @@
       var moveDirX = moveSpeed > 0.01 ? smoothVX / moveSpeed : 0;
       var moveDirY = moveSpeed > 0.01 ? smoothVY / moveSpeed : 0;
 
+      /* The blob itself: a rotating, organically deforming sphere rendered
+         with real perspective and depth sorting, not a flat shape merely
+         drawn to suggest one angle. It keeps spinning and undulating on its
+         own even at rest, spins faster and stretches along the direction of
+         travel while the cursor is actually moving, blooms outward on a
+         click, and runs bigger with a stronger internal pulse during the
+         load state - the same renderer throughout, just different
+         parameters feeding it depending on state. */
+      var spin = baseSpin + speedFactor * 0.0042 + burstEnergy * 0.01 + (inTransition ? 0.0016 : 0);
+      blobRotation += spin;
+      blobTilt = Math.sin(t * 0.00055) * 0.3 + speedFactor * 0.12;
+
+      var hoverGrow = 1 + hoverBoost * 0.35;
+      var burstGrow = 1 + burstEnergy * 0.55;
+      var convergeGrow = inTransition && !releasing ? convergeMult : 1;
+      var releaseGrow = releasing ? 1 + releaseT * 1.9 : 1;
+      var loaderGrow = inTransition ? 1.9 : 1;
+      var breathe = 1 + Math.sin(t * (inTransition ? 0.0016 : 0.0009)) * (inTransition ? 0.22 : 0.07);
+      var radius = BLOB_RADIUS * loaderGrow * hoverGrow * burstGrow * convergeGrow * releaseGrow * breathe;
+
+      var noiseAmp = inTransition ? 0.34 : 0.2 + speedFactor * 0.14;
+      var alphaBoost = releasing ? (1 - releaseT) : 1;
+      var cosTilt = Math.cos(blobTilt);
+      var sinTilt = Math.sin(blobTilt);
+
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.globalCompositeOperation = 'lighter';
       ctx.lineCap = 'round';
 
-      /* Neighbor repulsion is the expensive part - checking every particle
-         against every other one is O(n^2), which gets heavy fast as the
-         count grows. Bucket particles into a grid sized to the current
-         spacing so each particle only has to check the ~9 cells around it
-         instead of the whole swarm. Rebuilt every frame since particles
-         (and spacing itself, via the pulse) keep moving. */
-      var cellSize = Math.max(spacing, 40);
-      var grid = Object.create(null);
-      for (var gi = 0; gi < particles.length; gi++) {
-        var gp = particles[gi];
-        var gkey = (Math.floor(gp.x / cellSize)) + '_' + (Math.floor(gp.y / cellSize));
-        (grid[gkey] || (grid[gkey] = [])).push(gi);
-      }
+      for (var bi = 0; bi < particles.length; bi++) {
+        var bp = particles[bi];
+        var angle = bp.theta + blobRotation;
+        /* Two independent sine waves, each on the particle's own phase and
+           frequency, summed into one organic ripple across the surface -
+           not a rigid sphere, a breathing/undulating one. */
+        var noise = Math.sin(t * 0.0011 * bp.noiseFreqA + bp.noisePhaseA) * 0.5
+          + Math.sin(t * 0.002 * bp.noiseFreqB + bp.noisePhaseB) * 0.32;
+        var r = radius * bp.radiusJitter * (1 + noise * noiseAmp);
 
-      for (var i = 0; i < particles.length; i++) {
-        var p = particles[i];
-        var dx = tx - p.x;
-        var dy = ty - p.y;
-        var dist = Math.sqrt(dx * dx + dy * dy) || 0.001;
-        var wave = Math.sin(t * waveTimeFreq - dist * waveSpatialFreq);
+        var sinPhi = Math.sin(bp.phi);
+        var x3 = r * sinPhi * Math.cos(angle);
+        var y3 = r * Math.cos(bp.phi);
+        var z3 = r * sinPhi * Math.sin(angle);
 
-        var ax = (dx / dist) * pullK * dist * pullMult;
-        var ay = (dy / dist) * pullK * dist * pullMult;
-        ax += (-dy / dist) * swirlK * Math.min(dist, 340) * pullMult;
-        ay += (dx / dist) * swirlK * Math.min(dist, 340) * pullMult;
+        /* Tilt (rotate around the horizontal/X axis) so the sphere reads as
+           tumbling in 3D rather than spinning flat-on around one fixed axis. */
+        var y3t = y3 * cosTilt - z3 * sinTilt;
+        var z3t = y3 * sinTilt + z3 * cosTilt;
+
+        var scale = BLOB_FOCAL / (BLOB_FOCAL + z3t);
+        var sx = tx + x3 * scale;
+        var sy = ty + y3t * scale;
 
         if (speedFactor > 0.001) {
-          /* Particles trailing behind the direction of travel get less pull
-             (they drag, like the back of a flock), particles leading get to
-             keep theirs - an asymmetric, elongated shape instead of a ring. */
-          var alongMove = (p.x - tx) * moveDirX + (p.y - ty) * moveDirY;
-          var trailBias = Math.max(0, -alongMove) / (dist + 40);
-          var pullTrail = 1 - Math.min(0.72, trailBias * speedFactor * 2.1);
-          ax *= pullTrail;
-          ay *= pullTrail;
-
-          /* Independent per-particle flutter, each on its own phase, scaled
-             by how fast the swarm is traveling - the "insects/birds" quality
-             that keeps the whole group from moving as one rigid piece. */
-          var flutter = Math.sin(t * 0.006 * p.wobbleFreq + p.wobblePhase) * speedFactor * 1.7;
-          ax += (-dy / dist) * flutter;
-          ay += (dx / dist) * flutter;
+          /* Anisotropic stretch in screen space: elongate along the travel
+             direction, compress slightly across it - the blob reads as
+             being carried/thrown through space rather than sliding rigidly. */
+          var relX = sx - tx;
+          var relY = sy - ty;
+          var along = relX * moveDirX + relY * moveDirY;
+          var perp = relX * -moveDirY + relY * moveDirX;
+          var newAlong = along * (1 + speedFactor * 1.1);
+          var newPerp = perp * (1 - speedFactor * 0.3);
+          sx = tx + moveDirX * newAlong - moveDirY * newPerp;
+          sy = ty + moveDirY * newAlong + moveDirX * newPerp;
         }
 
-        ax += -(dx / dist) * wave * waveAmp;
-        ay += -(dy / dist) * wave * waveAmp;
+        var slot = blobProjected[bi];
+        slot.p = bp;
+        slot.x = sx;
+        slot.y = sy;
+        slot.depthT = (z3t / r + 1) / 2;
+        slot.angle = angle;
+      }
 
-        var cgx = Math.floor(p.x / cellSize);
-        var cgy = Math.floor(p.y / cellSize);
-        for (var ngx = cgx - 1; ngx <= cgx + 1; ngx++) {
-          for (var ngy = cgy - 1; ngy <= cgy + 1; ngy++) {
-            var cell = grid[ngx + '_' + ngy];
-            if (!cell) continue;
-            for (var ci = 0; ci < cell.length; ci++) {
-              var j = cell[ci];
-              if (j === i) continue;
-              var q = particles[j];
-              var ddx = p.x - q.x;
-              var ddy = p.y - q.y;
-              var d2 = ddx * ddx + ddy * ddy;
-              if (d2 < spacing2 && d2 > 0.0001) {
-                var d = Math.sqrt(d2);
-                var push = (spacing - d) / spacing * repelK;
-                ax += (ddx / d) * push;
-                ay += (ddy / d) * push;
-              }
-            }
-          }
-        }
+      /* Depth sort so near particles paint over far ones - this occlusion,
+         more than anything else, is what makes it read as a solid object
+         with volume instead of a flat scatter of dots. */
+      blobProjected.sort(function (a, b) { return a.depthT - b.depthT; });
 
-        p.vx = (p.vx + ax * 0.06) * damping;
-        p.vy = (p.vy + ay * 0.06) * damping;
-        p.x += p.vx;
-        p.y += p.vy;
+      for (var pk = 0; pk < blobProjected.length; pk++) {
+        var slot2 = blobProjected[pk];
+        var bp2 = slot2.p;
+        var depthT2 = slot2.depthT;
 
-        var speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
-        var angle = speed > 0.02 ? Math.atan2(p.vy, p.vx) : Math.atan2(ty - p.y, tx - p.x) + Math.PI / 2;
-        var hueAngle = Math.atan2(p.y - ty, p.x - tx);
-        var hue = HUE_START + ((hueAngle + Math.PI) / (Math.PI * 2)) * HUE_SPAN;
-        var glow = 0.5 + wave * 0.25 + burstEnergy * 0.9;
-        var alpha = (0.3 + Math.min(0.45, speed * 0.9) + glow * 0.2) * (reducedMotion ? 0.75 : 1);
-
-        /* Full size only lives in a middle "sweet spot" band - particles
-           shrink smoothly both as they close in on the cursor/target and as
-           they drift far out past it, since dist changes constantly as the
-           swarm moves either direction. */
-        var nearT = Math.max(0, 1 - dist / 130);
-        var farT = Math.min(1, Math.max(0, (dist - 340) / 300));
-        var shrinkT = Math.max(nearT, farT);
-        var sizeMult = 1 - shrinkT * 0.9;
+        var hueT = (((slot2.angle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) / (Math.PI * 2);
+        var hue = HUE_START + hueT * HUE_SPAN;
+        var alpha = (0.16 + depthT2 * 0.58) * alphaBoost * (reducedMotion ? 0.75 : 1);
+        var sizeMult = 0.45 + depthT2 * 0.95;
+        var dirAngle = Math.atan2(slot2.y - ty, slot2.x - tx) + Math.PI / 2;
 
         ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(angle);
-        ctx.strokeStyle = 'hsla(' + hue + ', 82%, 66%, ' + alpha + ')';
-        ctx.lineWidth = p.width * (1 + burstEnergy * 1.3) * sizeMult;
-        var len = p.len * (1 + burstEnergy * 2.2) * sizeMult;
+        ctx.translate(slot2.x, slot2.y);
+        ctx.rotate(dirAngle);
+        ctx.strokeStyle = 'hsla(' + hue + ', 80%, 64%, ' + alpha + ')';
+        ctx.lineWidth = bp2.width * sizeMult;
+        var len = bp2.len * sizeMult;
         ctx.beginPath();
         ctx.moveTo(-len / 2, 0);
         ctx.lineTo(len / 2, 0);
