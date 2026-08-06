@@ -197,13 +197,13 @@
        nudged sideways for a shared swirl. The cluster's form emerges frame
        to frame from those local forces - that's what makes it read as
        fluid rather than a rigid rotating body. */
-    var COUNT = reducedMotion ? 55 : 100;
+    var COUNT = reducedMotion ? 90 : 190;
     var cx = window.innerWidth / 2;
     var cy = window.innerHeight / 2;
     var particles = [];
     for (var i = 0; i < COUNT; i++) {
       var seedAngle = Math.random() * Math.PI * 2;
-      var seedR = Math.random() * 140;
+      var seedR = Math.random() * 260;
       particles.push({
         x: cx + Math.cos(seedAngle) * seedR,
         y: cy + Math.sin(seedAngle) * seedR,
@@ -225,7 +225,7 @@
     var swirlK = reducedMotion ? 0.006 : 0.014;
     var repelK = 0.9;
     var damping = 0.9;
-    var baseSpacing = 42;
+    var baseSpacing = 92;
 
     function drawGas(t) {
       var idleFor = t - lastMoveTime;
@@ -251,8 +251,8 @@
 
         var ax = (dx / dist) * pullK * dist;
         var ay = (dy / dist) * pullK * dist;
-        ax += (-dy / dist) * swirlK * Math.min(dist, 220);
-        ay += (dx / dist) * swirlK * Math.min(dist, 220);
+        ax += (-dy / dist) * swirlK * Math.min(dist, 340);
+        ay += (dx / dist) * swirlK * Math.min(dist, 340);
 
         for (var j = 0; j < particles.length; j++) {
           if (j === i) continue;
