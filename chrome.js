@@ -224,10 +224,33 @@
       shown = false;
     });
 
+    var magnets = document.querySelectorAll('.btn-primary, .nav-cta, .menu-toggle, .theme-switch, #sound-toggle, .arrow-btn');
+
+    /* Pulls the cursor ring's target point toward the nearest magnetic
+       button once the raw cursor is within range of it, strongest right at
+       the edge and fading to nothing at the range limit - a proximity
+       magnet, not a snap, and only for the ring (the dot stays exact so
+       clicking still feels precise). */
+    function magnetOffsetFor(px, py) {
+      var range = 70;
+      var best = null;
+      for (var m = 0; m < magnets.length; m++) {
+        var r = magnets[m].getBoundingClientRect();
+        var ex = r.left + r.width / 2;
+        var ey = r.top + r.height / 2;
+        var edgeDist = Math.max(0, Math.hypot(px - ex, py - ey) - Math.max(r.width, r.height) / 2);
+        if (edgeDist < range && (!best || edgeDist < best.d)) best = { x: ex, y: ey, d: edgeDist };
+      }
+      if (!best) return { x: 0, y: 0 };
+      var strength = (1 - best.d / range) * 0.4;
+      return { x: (best.x - px) * strength, y: (best.y - py) * strength };
+    }
+
     (function tickRing() {
       var ease = reducedMotion ? 1 : 0.16;
-      ringX += (cx - ringX) * ease;
-      ringY += (cy - ringY) * ease;
+      var magnet = reducedMotion ? { x: 0, y: 0 } : magnetOffsetFor(cx, cy);
+      ringX += (cx + magnet.x - ringX) * ease;
+      ringY += (cy + magnet.y - ringY) * ease;
       cursorRing.style.left = ringX + 'px';
       cursorRing.style.top = ringY + 'px';
       requestAnimationFrame(tickRing);
@@ -245,7 +268,6 @@
     });
 
     if (!reducedMotion) {
-      var magnets = document.querySelectorAll('.btn-primary, .nav-cta, .menu-toggle, .theme-switch, #sound-toggle, .arrow-btn');
       magnets.forEach(function (el) {
         el.addEventListener('mousemove', function (e) {
           var r = el.getBoundingClientRect();
