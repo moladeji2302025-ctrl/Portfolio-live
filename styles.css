@@ -3,7 +3,7 @@
      dark is opt-in only, applied below via [data-theme='dark']. */
   color-scheme: light;
   --bg: #faf9fb;
-  --bg-alt: rgba(241, 240, 244, 0.38);
+  --bg-alt: rgba(241, 240, 244, 0.5);
   --surface: rgba(10, 12, 20, 0.03);
   --border: rgba(10, 12, 20, 0.09);
   --text-primary: #12141b;
@@ -22,7 +22,7 @@
 :root[data-theme='dark'] {
   color-scheme: dark;
   --bg: #070707;
-  --bg-alt: rgba(16, 16, 16, 0.38);
+  --bg-alt: rgba(16, 16, 16, 0.5);
   --surface: rgba(255, 255, 255, 0.035);
   --border: rgba(255, 255, 255, 0.09);
   --text-primary: #f2f2f3;
@@ -39,7 +39,7 @@
 :root[data-theme='light'] {
   color-scheme: light;
   --bg: #faf9fb;
-  --bg-alt: rgba(241, 240, 244, 0.38);
+  --bg-alt: rgba(241, 240, 244, 0.5);
   --surface: rgba(10, 12, 20, 0.03);
   --border: rgba(10, 12, 20, 0.09);
   --text-primary: #12141b;
