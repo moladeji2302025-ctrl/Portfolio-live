@@ -263,6 +263,9 @@
     canvas.id = 'gas-canvas';
     canvas.setAttribute('aria-hidden', 'true');
     document.body.insertBefore(canvas, document.body.firstChild);
+    /* setCanvasFront() may have already been called on the arriving page,
+       before this canvas existed to receive it - catch up now. */
+    if (loaderCenter) canvas.style.zIndex = '151';
     var ctx = canvas.getContext('2d');
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
 
