@@ -467,7 +467,7 @@
            back down to clear - so the idle pulse reads as breathing, not
            as clearing up and reblurring. */
         var blurPulse = 0.5 + pulseSin * 0.5;
-        var blurAmount = idleT * (0.6 + blurPulse * 1.0);
+        var blurAmount = idleT * (0.35 + blurPulse * 0.55);
         canvas.style.filter = blurAmount > 0.05 ? 'blur(' + blurAmount.toFixed(1) + 'px)' : 'none';
       }
 
