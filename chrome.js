@@ -138,8 +138,11 @@
 
   if (pageLoader) {
     (function () {
-      var FAST_LOAD_THRESHOLD = 3000;
-      var MIN_SHOW_IF_FAST = 5000;
+      /* Matches the energy-wave rhythm in the gas-trail block (2*PI/0.0046) -
+         kept as a literal here since that code hasn't run yet when this
+         section first executes. */
+      var LOAD_PULSE_PERIOD = 1366;
+      var MIN_PULSES = 4;
       var OUT_DELAY = 480;
 
       function revealPage() {
@@ -148,9 +151,10 @@
           pageLoader.classList.remove('is-instant');
           pageLoader.classList.remove('is-active');
         }, 400);
-        setTimeout(function () {
-          setCanvasFront(false);
-        }, 1550);
+        /* setCanvasFront(false) is triggered from inside drawGas the instant
+           the release animation itself finishes, not on a separate guessed
+           timer - so it can never fall out of sync with what's actually
+           still visibly dispersing. */
       }
 
       if (pageLoader.classList.contains('is-active')) {
@@ -158,11 +162,12 @@
         setCanvasFront(true);
         var arrivedAt = performance.now();
         var doReveal = function () {
-          /* A load under 3s still holds the loader to a full 5s so it never
-             reads as a flicker; a slower load is shown for exactly as long
-             as it actually took, no extra padding on top of that. */
+          /* Always let the swarm complete at least 4 full pulse cycles
+             before it's allowed to disperse, regardless of how fast the
+             page itself loaded - a load that takes longer than that is
+             simply shown for exactly as long as it actually took. */
           var elapsed = performance.now() - arrivedAt;
-          var wait = elapsed < FAST_LOAD_THRESHOLD ? Math.max(0, MIN_SHOW_IF_FAST - elapsed) : 0;
+          var wait = Math.max(0, MIN_PULSES * LOAD_PULSE_PERIOD - elapsed);
           setTimeout(revealPage, wait);
         };
         if (document.readyState === 'complete') doReveal();
@@ -372,13 +377,15 @@
       /* Finish an in-progress release: fade the pull to zero, then hand
          back to normal cursor-follow. */
       var releaseMult = 1;
+      var releaseT = 0;
       if (releasing) {
-        var relT = Math.min(1, (t - releaseStart) / RELEASE_DURATION);
-        releaseMult = 1 - relT;
-        if (relT >= 1) {
+        releaseT = Math.min(1, (t - releaseStart) / RELEASE_DURATION);
+        releaseMult = 1 - releaseT;
+        if (releaseT >= 1) {
           releasing = false;
           loaderCenter = null;
           inTransition = false;
+          setCanvasFront(false);
         }
       }
 
@@ -393,7 +400,12 @@
         convergeStart = null;
       }
 
-      if (inTransition) {
+      if (releasing) {
+        /* Blur ramps up hard as the swarm disperses, so it visibly
+           dissolves away rather than just scattering while staying sharp. */
+        var disperseBlur = 0.9 + Math.pow(releaseT, 1.4) * 13;
+        canvas.style.filter = 'blur(' + disperseBlur.toFixed(1) + 'px)';
+      } else if (inTransition) {
         /* Just a whisper of blur breathing with the energy wave, not the
            fuller idle blur - the load state should read as mostly sharp. */
         var loaderBlur = (0.5 + Math.sin(t * 0.0023) * 0.5) * 0.9;
