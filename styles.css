@@ -322,15 +322,18 @@ a {
   display: block;
 }
 
+/* Fixed footprint wide enough for "ART" in the widest of the ten fonts
+   below, so the morph never nudges the bounce-dot or wraps the line -
+   text stays flush-left within it, same as it would set naturally. Color
+   is the ordinary body-text color, same as every other word in the
+   headline - only the typeface itself changes. */
 .hero-line .brush-word {
   position: relative;
   display: inline-block;
-  color: hsl(0 85% 42%);
-  animation: roygbiv-light 7s steps(1, jump-end) infinite;
-}
-
-:root[data-theme='dark'] .hero-line .brush-word {
-  animation: roygbiv-dark 7s steps(1, jump-end) infinite;
+  width: 4.2em;
+  text-align: left;
+  color: var(--text-primary);
+  animation: art-style-morph 10s infinite;
 }
 
 /* The full stop after "Art", but alive: a small ball that bounces in place
@@ -338,7 +341,9 @@ a {
    be. Squash-and-stretch plus eased (slow-out leaving the ground, slow-in
    arriving at the peak) timing per keyframe segment are what read as an
    actual bounce rather than a mechanical up-down slide - em-sized amplitude
-   keeps its peak well under the cap-height of the surrounding letters. */
+   keeps its peak well under the cap-height of the surrounding letters.
+   Color is neutral (matches body text) like every other punctuation mark
+   on the page - only "Art" itself carries the style-morph. */
 .hero-line .bounce-dot {
   display: inline-block;
   width: 0.12em;
@@ -347,16 +352,8 @@ a {
   border-radius: 50%;
   vertical-align: baseline;
   transform-origin: center bottom;
-  background-color: hsl(0 85% 42%);
-  animation:
-    ball-bounce 1s infinite,
-    roygbiv-light-bg 7s steps(1, jump-end) infinite;
-}
-
-:root[data-theme='dark'] .hero-line .bounce-dot {
-  animation:
-    ball-bounce 1s infinite,
-    roygbiv-dark-bg 7s steps(1, jump-end) infinite;
+  background-color: var(--text-primary);
+  animation: ball-bounce 1s infinite;
 }
 
 @keyframes ball-bounce {
@@ -381,63 +378,66 @@ a {
   }
 }
 
-/* Straight ROYGBIV, one full color per bounce (7 bounces per 7s loop) -
-   hard cuts (steps, not eased blending) right on each ground hit, since
-   the whole point is that every landing is an unmistakable, fully-switched
-   new color, not a gradual crossfade toward one. "Art" and the ball share
-   identical stops so they always flip in lockstep. */
-@keyframes roygbiv-light {
-  0%      { color: hsl(0 85% 42%); }   /* red */
-  14.286% { color: hsl(28 90% 42%); }  /* orange */
-  28.571% { color: hsl(50 90% 38%); }  /* yellow */
-  42.857% { color: hsl(130 60% 32%); } /* green */
-  57.143% { color: hsl(220 80% 46%); } /* blue */
-  71.429% { color: hsl(265 60% 42%); } /* indigo */
-  85.714% { color: hsl(292 65% 42%); } /* violet */
-  100%    { color: hsl(0 85% 42%); }
-}
+/* Ten exotic display faces, one per bounce, cycling over a 10s loop that
+   matches the ball's 1s period exactly - a new style is live the instant
+   each landing happens. Font-family can't be interpolated, so the "ease
+   into it" comes from opacity: it dips right at the swap and eases back
+   up after, reusing the ball's own two curves (ease-out for the recovery,
+   matching its launch off the ground; ease-in for the approach into the
+   next dip, matching its fall) so the morph reads as timed by the same
+   physical rhythm as the bounce itself, not a separate effect bolted on. */
+@keyframes art-style-morph {
+  0%   { opacity: 0.15; font-family: 'Michroma', sans-serif; letter-spacing: 0; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  2%   { opacity: 1; font-family: 'Michroma', sans-serif; letter-spacing: 0; }
+  8%   { opacity: 1; font-family: 'Michroma', sans-serif; letter-spacing: 0; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
 
-@keyframes roygbiv-dark {
-  0%      { color: hsl(0 90% 62%); }
-  14.286% { color: hsl(28 95% 60%); }
-  28.571% { color: hsl(50 95% 58%); }
-  42.857% { color: hsl(130 65% 58%); }
-  57.143% { color: hsl(220 90% 68%); }
-  71.429% { color: hsl(265 75% 68%); }
-  85.714% { color: hsl(292 75% 68%); }
-  100%    { color: hsl(0 90% 62%); }
-}
+  10%  { opacity: 0.15; font-family: 'Bungee', sans-serif; letter-spacing: 0.02em; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  12%  { opacity: 1; font-family: 'Bungee', sans-serif; letter-spacing: 0.02em; }
+  18%  { opacity: 1; font-family: 'Bungee', sans-serif; letter-spacing: 0.02em; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
 
-@keyframes roygbiv-light-bg {
-  0%      { background-color: hsl(0 85% 42%); }
-  14.286% { background-color: hsl(28 90% 42%); }
-  28.571% { background-color: hsl(50 90% 38%); }
-  42.857% { background-color: hsl(130 60% 32%); }
-  57.143% { background-color: hsl(220 80% 46%); }
-  71.429% { background-color: hsl(265 60% 42%); }
-  85.714% { background-color: hsl(292 65% 42%); }
-  100%    { background-color: hsl(0 85% 42%); }
-}
+  20%  { opacity: 0.15; font-family: 'Monoton', sans-serif; letter-spacing: 0.08em; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  22%  { opacity: 1; font-family: 'Monoton', sans-serif; letter-spacing: 0.08em; }
+  28%  { opacity: 1; font-family: 'Monoton', sans-serif; letter-spacing: 0.08em; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
 
-@keyframes roygbiv-dark-bg {
-  0%      { background-color: hsl(0 90% 62%); }
-  14.286% { background-color: hsl(28 95% 60%); }
-  28.571% { background-color: hsl(50 95% 58%); }
-  42.857% { background-color: hsl(130 65% 58%); }
-  57.143% { background-color: hsl(220 90% 68%); }
-  71.429% { background-color: hsl(265 75% 68%); }
-  85.714% { background-color: hsl(292 75% 68%); }
-  100%    { background-color: hsl(0 90% 62%); }
+  30%  { opacity: 0.15; font-family: 'Faster One', sans-serif; letter-spacing: 0; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  32%  { opacity: 1; font-family: 'Faster One', sans-serif; letter-spacing: 0; }
+  38%  { opacity: 1; font-family: 'Faster One', sans-serif; letter-spacing: 0; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+
+  40%  { opacity: 0.15; font-family: 'Fascinate', sans-serif; letter-spacing: 0.04em; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  42%  { opacity: 1; font-family: 'Fascinate', sans-serif; letter-spacing: 0.04em; }
+  48%  { opacity: 1; font-family: 'Fascinate', sans-serif; letter-spacing: 0.04em; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+
+  50%  { opacity: 0.15; font-family: 'Nosifer', sans-serif; letter-spacing: 0; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  52%  { opacity: 1; font-family: 'Nosifer', sans-serif; letter-spacing: 0; }
+  58%  { opacity: 1; font-family: 'Nosifer', sans-serif; letter-spacing: 0; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+
+  60%  { opacity: 0.15; font-family: 'Butcherman', sans-serif; letter-spacing: 0; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  62%  { opacity: 1; font-family: 'Butcherman', sans-serif; letter-spacing: 0; }
+  68%  { opacity: 1; font-family: 'Butcherman', sans-serif; letter-spacing: 0; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+
+  70%  { opacity: 0.15; font-family: 'Codystar', sans-serif; letter-spacing: 0.15em; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  72%  { opacity: 1; font-family: 'Codystar', sans-serif; letter-spacing: 0.15em; }
+  78%  { opacity: 1; font-family: 'Codystar', sans-serif; letter-spacing: 0.15em; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+
+  80%  { opacity: 0.15; font-family: 'Kranky', sans-serif; letter-spacing: 0.02em; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  82%  { opacity: 1; font-family: 'Kranky', sans-serif; letter-spacing: 0.02em; }
+  88%  { opacity: 1; font-family: 'Kranky', sans-serif; letter-spacing: 0.02em; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+
+  90%  { opacity: 0.15; font-family: 'Rubik Wet Paint', sans-serif; letter-spacing: 0.02em; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  92%  { opacity: 1; font-family: 'Rubik Wet Paint', sans-serif; letter-spacing: 0.02em; }
+  98%  { opacity: 1; font-family: 'Rubik Wet Paint', sans-serif; letter-spacing: 0.02em; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+
+  100% { opacity: 0.15; font-family: 'Michroma', sans-serif; letter-spacing: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .hero-line .brush-word {
     animation: none;
-    color: var(--accent);
+    opacity: 1;
+    font-family: 'Michroma', sans-serif;
   }
   .hero-line .bounce-dot {
     animation: none;
-    background-color: var(--accent);
     transform: none;
   }
 }
