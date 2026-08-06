@@ -439,6 +439,16 @@
         convergeStart = null;
       }
 
+      /* Ambient idle pulse: a single shared phase drives both the blur and
+         the spacing breathing below, so the swarm visibly expands as it
+         blurs and contracts back as it sharpens, instead of blur being the
+         only thing pulsing. Scoped to the idle (non-transition) state only -
+         it fades to zero the moment the cursor starts moving again. */
+      var idleFor = t - lastMoveTime;
+      var idleT = inTransition ? 0 : Math.max(0, Math.min(1, (idleFor - 600) / 2600));
+      var pulseSin = Math.sin(t * 0.0014);
+      var ambientSpacingPulse = 1 + idleT * pulseSin * 0.3;
+
       if (releasing) {
         /* Blur ramps up hard as the swarm disperses, so it visibly
            dissolves away rather than just scattering while staying sharp. */
@@ -450,10 +460,8 @@
         var loaderBlur = (0.5 + Math.sin(t * 0.0023) * 0.5) * 0.9;
         canvas.style.filter = loaderBlur > 0.05 ? 'blur(' + loaderBlur.toFixed(1) + 'px)' : 'none';
       } else {
-        var idleFor = t - lastMoveTime;
-        var idleT = Math.max(0, Math.min(1, (idleFor - 600) / 2600));
-        var blurPulse = 0.5 + Math.sin(t * 0.0014) * 0.5;
-        var blurAmount = idleT * 2.6 * blurPulse;
+        var blurPulse = 0.5 + pulseSin * 0.5;
+        var blurAmount = idleT * 1.2 * blurPulse;
         canvas.style.filter = blurAmount > 0.05 ? 'blur(' + blurAmount.toFixed(1) + 'px)' : 'none';
       }
 
@@ -479,7 +487,7 @@
          shrinks in tight, then expands back out - on top of the wider
          base distance, rather than staying at one fixed width. */
       var loaderSpacingPulse = inTransition ? 0.4 + (0.5 + Math.sin(t * 0.0016) * 0.5) * 0.9 : 1;
-      var spacing = (inTransition ? loaderSpacing * loaderSpacingPulse : baseSpacing) * (1 + hoverBoost * 0.7);
+      var spacing = (inTransition ? loaderSpacing * loaderSpacingPulse : baseSpacing * ambientSpacingPulse) * (1 + hoverBoost * 0.7);
       var spacing2 = spacing * spacing;
       var pullMult = convergeMult * releaseMult;
 
