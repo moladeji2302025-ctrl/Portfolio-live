@@ -166,7 +166,7 @@
   grain.setAttribute('aria-hidden', 'true');
   document.body.appendChild(grain);
 
-  /* ---------------- magnetic particle field ---------------- */
+  /* ---------------- rotating particle orb ---------------- */
   if (fine) {
     var canvas = document.createElement('canvas');
     canvas.id = 'gas-canvas';
@@ -191,29 +191,37 @@
     function refreshGasColors() {} /* kept as a no-op so theme toggle callers stay valid */
     window.__refreshGasColors = refreshGasColors;
 
-    /* A persistent field, not a spawn/decay trail: every particle is always
-       alive, always drifting, and gets pulled into orbit around the cursor
-       (magnetic-field style: radial pull + tangential swirl) whenever the
-       mouse is active. When the mouse goes idle they keep gently pulsing
-       on their own and the whole field softens with blur. */
-    var COUNT = reducedMotion ? 90 : 170;
+    /* A compact sphere of particles, not a page-wide field: every particle
+       has a fixed spot on a rotating 3D shell. The whole shell spins as one
+       coordinated unit (a single rotation applied to everyone, so nothing
+       moves independently), pulses gently, and its center eases toward the
+       cursor with a lag - a flock following a point, not particles snapping
+       to it. */
+    var COUNT = reducedMotion ? 70 : 130;
+    var BASE_RADIUS = 78;
     var particles = [];
     for (var i = 0; i < COUNT; i++) {
+      var frac = (i + 0.5) / COUNT;
+      var phi = Math.acos(1 - 2 * frac); /* Fibonacci sphere: even coverage */
+      var theta = Math.PI * (1 + Math.sqrt(5)) * i;
       particles.push({
-        x: Math.random() * window.innerWidth,
-        y: Math.random() * window.innerHeight,
-        vx: 0,
-        vy: 0,
-        len: 7 + Math.random() * 13,
-        width: 1.4 + Math.random() * 1.6,
+        theta: theta,
+        phi: phi,
+        radiusJitter: 0.82 + Math.random() * 0.32,
+        len: 6 + Math.random() * 10,
+        width: 1.3 + Math.random() * 1.4,
         hue: HUE_START + Math.random() * HUE_SPAN,
-        phase: Math.random() * Math.PI * 2
+        pulsePhase: Math.random() * Math.PI * 2,
+        pulseSpeed: 0.7 + Math.random() * 0.6
       });
     }
 
-    var targetX = window.innerWidth / 2;
-    var targetY = window.innerHeight / 2;
+    var coreX = window.innerWidth / 2;
+    var coreY = window.innerHeight / 2;
+    var targetX = coreX;
+    var targetY = coreY;
     var lastMoveTime = -99999;
+    var rotation = 0;
 
     window.addEventListener('pointermove', function (e) {
       targetX = e.clientX;
@@ -221,11 +229,20 @@
       lastMoveTime = performance.now();
     }, { passive: true });
 
+    var FOCAL = 320;
+    var follow = reducedMotion ? 0.03 : 0.07;
+    var spinSpeed = reducedMotion ? 0.0025 : 0.0065;
+
     function drawGas(t) {
       var idleFor = t - lastMoveTime;
-      var idleT = Math.max(0, Math.min(1, (idleFor - 400) / 2200));
-      var activity = reducedMotion ? 0.3 : 1 - idleT * 0.75;
-      canvas.style.filter = idleT > 0.02 ? 'blur(' + (idleT * 7).toFixed(1) + 'px)' : 'none';
+      var idleT = Math.max(0, Math.min(1, (idleFor - 600) / 2600));
+      canvas.style.filter = idleT > 0.02 ? 'blur(' + (idleT * 5).toFixed(1) + 'px)' : 'none';
+
+      coreX += (targetX - coreX) * follow;
+      coreY += (targetY - coreY) * follow;
+      rotation += spinSpeed;
+
+      var breathe = 1 + Math.sin(t * 0.0012) * 0.06;
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -234,46 +251,41 @@
 
       for (var idx = 0; idx < particles.length; idx++) {
         var p = particles[idx];
-        var dx = targetX - p.x;
-        var dy = targetY - p.y;
-        var dist = Math.sqrt(dx * dx + dy * dy) || 1;
-        var nx = dx / dist;
-        var ny = dy / dist;
-        var tx = -ny;
-        var ty = nx;
+        var angle = p.theta + rotation;
+        var pulse = 1 + Math.sin(t * 0.0016 * p.pulseSpeed + p.pulsePhase) * 0.12;
+        var r = BASE_RADIUS * p.radiusJitter * breathe * pulse;
 
-        var pull = Math.min(0.5, 55 / dist) * activity;
-        var swirl = 0.4 * activity;
+        var sinPhi = Math.sin(p.phi);
+        var x3 = r * sinPhi * Math.cos(angle);
+        var y3 = r * Math.cos(p.phi);
+        var z3 = r * sinPhi * Math.sin(angle);
 
-        p.vx += (nx * pull + tx * swirl) * 0.05;
-        p.vy += (ny * pull + ty * swirl) * 0.05;
+        /* Tangent sampled a hair ahead in the same rotation, projected the
+           same way, so the streak always points along its own travel arc. */
+        var angle2 = angle + 0.02;
+        var x3b = r * sinPhi * Math.cos(angle2);
+        var z3b = r * sinPhi * Math.sin(angle2);
 
-        p.phase += 0.014;
-        p.vx += Math.sin(p.phase) * 0.012;
-        p.vy += Math.cos(p.phase * 0.85) * 0.012;
+        var scale = FOCAL / (FOCAL + z3);
+        var scale2 = FOCAL / (FOCAL + z3b);
+        var sx = coreX + x3 * scale;
+        var sy = coreY + y3 * scale;
+        var sx2 = coreX + x3b * scale2;
+        var sy2 = coreY + y3 * scale2;
 
-        p.vx *= 0.945;
-        p.vy *= 0.945;
-        p.x += p.vx;
-        p.y += p.vy;
-
-        if (p.x < -60) p.x = window.innerWidth + 60;
-        if (p.x > window.innerWidth + 60) p.x = -60;
-        if (p.y < -60) p.y = window.innerHeight + 60;
-        if (p.y > window.innerHeight + 60) p.y = -60;
-
-        var speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
-        var angle = Math.atan2(p.vy, p.vx);
-        var alpha = 0.28 + Math.min(0.4, speed * 1.6);
+        var dirAngle = Math.atan2(sy2 - sy, sx2 - sx);
+        var depthT = (z3 / r + 1) / 2; /* 0 = far side, 1 = near side */
+        var alpha = (0.22 + depthT * 0.5) * (reducedMotion ? 0.7 : 1);
 
         ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(angle);
+        ctx.translate(sx, sy);
+        ctx.rotate(dirAngle);
         ctx.strokeStyle = 'hsla(' + p.hue + ', 82%, 66%, ' + alpha + ')';
-        ctx.lineWidth = p.width;
+        ctx.lineWidth = p.width * scale;
+        var len = p.len * scale;
         ctx.beginPath();
-        ctx.moveTo(-p.len / 2, 0);
-        ctx.lineTo(p.len / 2, 0);
+        ctx.moveTo(-len / 2, 0);
+        ctx.lineTo(len / 2, 0);
         ctx.stroke();
         ctx.restore();
       }
