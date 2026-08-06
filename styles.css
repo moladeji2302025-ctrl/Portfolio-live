@@ -310,6 +310,8 @@ a {
   max-width: 760px;
   gap: 2rem;
   align-items: center;
+  justify-items: center;
+  text-align: center;
   padding: 4rem 0;
 }
 
@@ -452,11 +454,12 @@ a {
 .hero-copy {
   color: var(--text-muted);
   max-width: 540px;
-  margin: 1.2rem 0 2rem;
+  margin: 1.2rem auto 2rem;
 }
 
 .hero-actions {
   display: flex;
+  justify-content: center;
   flex-wrap: wrap;
   gap: 1rem;
 }
@@ -1231,7 +1234,7 @@ a {
   width: 130px;
   height: 0;
   border-top: 1.5px dashed color-mix(in srgb, var(--accent) 55%, transparent);
-  margin: 1.6rem 0;
+  margin: 1.6rem auto;
 }
 
 .lightbox {
