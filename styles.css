@@ -17,6 +17,9 @@
   --white: #12141b;
   --nav-height: 82px;
   --nav-height-mobile: 72px;
+  /* Same hue sweep and lightness as the particle system's stroke color in
+     chrome.js (HUE_START 200 / HUE_SPAN 170, light-theme lightness 40%). */
+  --brush-gradient: linear-gradient(90deg, hsl(200 82% 40%), hsl(285 82% 40%), hsl(370 82% 40%));
 }
 
 :root[data-theme='dark'] {
@@ -34,6 +37,7 @@
   --header-bg: rgba(5, 5, 5, 0.82);
   --overlay-bg: rgba(5, 5, 5, 0.97);
   --white: #ffffff;
+  --brush-gradient: linear-gradient(90deg, hsl(200 82% 66%), hsl(285 82% 66%), hsl(370 82% 66%));
 }
 
 :root[data-theme='light'] {
@@ -51,6 +55,7 @@
   --header-bg: rgba(250, 249, 251, 0.82);
   --overlay-bg: rgba(250, 249, 251, 0.97);
   --white: #12141b;
+  --brush-gradient: linear-gradient(90deg, hsl(200 82% 40%), hsl(285 82% 40%), hsl(370 82% 40%));
 }
 
 body {
@@ -328,6 +333,10 @@ a {
   position: relative;
   display: inline-block;
   color: var(--accent);
+  background: var(--brush-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .hero-line .brush-icon {
