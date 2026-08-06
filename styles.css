@@ -339,31 +339,32 @@ a {
 @font-face { font-family: 'Surgena'; src: url('./fonts/Surgena.ttf') format('truetype'); font-display: swap; }
 @font-face { font-family: 'BlackSansa'; src: url('./fonts/BlackSansa.otf') format('opentype'); font-display: swap; }
 
-/* "Art" in the markup stays literally "Art" - each of the 39 morph steps
-   below supplies its own text-transform (uppercase/capitalize/lowercase)
-   to get ART/Art/art, so this no longer forces a fixed casing itself.
-   Both dimensions are fixed and overflow is clipped: the 13 fonts render
-   "Art" at very different widths as well as very different internal
-   line-height metrics. An unconstrained width let some of them push
-   "Into Art." past the line's available space, wrapping "Art" onto its
-   own line and shoving the dash rule/paragraph/button down whenever one
-   of those fonts came up - not a small nudge, a whole extra line. Capping
-   width the same way height is already capped closes that off entirely,
-   at the cost of clipping the tail of unusually wide faces, same
-   tradeoff already accepted for tall/short ones. inline-flex with
-   align-items:flex-end and justify-content:flex-start keeps the visible
-   text pinned to the same top-left starting corner (so it still reads as
-   a natural continuation of "Into " and the bounce-dot still sits close
-   to it) regardless of which edge any given font would otherwise
-   overflow. Color is the ordinary body-text color, same as every other
-   word in the headline - only the typeface and casing change. */
-.hero-line .brush-word {
+/* Capping width/height with overflow:hidden on the morphing element
+   itself still let some fonts affect surrounding layout - font metrics
+   are unpredictable enough (unhinted demo files, unusual internal
+   tables) that clipping isn't reliably airtight across all 13. So this
+   is a two-layer fix instead: .brush-word-slot is a plain, empty,
+   font-independent box that reserves a completely fixed footprint in
+   normal text flow - nothing inside it ever varies, so it cannot ever
+   wrap the line or resize regardless of what any font does. The actual
+   morphing text (.brush-word) is positioned absolutely, filling that
+   slot exactly - being out of flow entirely, it is now structurally
+   incapable of influencing anything outside itself, no matter how a
+   given font's metrics misbehave. */
+.hero-line .brush-word-slot {
   position: relative;
-  display: inline-flex;
-  align-items: flex-end;
-  justify-content: flex-start;
+  display: inline-block;
   width: 2.4em;
   height: 1em;
+  vertical-align: bottom;
+}
+
+.hero-line .brush-word {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
   overflow: hidden;
   color: var(--text-primary);
   animation: art-style-morph 39s infinite;
