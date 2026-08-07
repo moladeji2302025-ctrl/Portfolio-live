@@ -118,11 +118,11 @@ a {
 
 .section-title {
   margin: 0.25rem 0 0;
-  font-family: 'Michroma', sans-serif;
+  font-family: 'Surgena', sans-serif;
   font-size: clamp(2.8rem, 8vw, 6.4rem);
   letter-spacing: 0.03em;
   line-height: 0.95;
-  text-transform: uppercase;
+  text-transform: lowercase;
 }
 
 .section-kicker {
@@ -311,10 +311,10 @@ a {
 }
 
 .hero-line {
-  font-family: 'Michroma', sans-serif;
+  font-family: 'Surgena', sans-serif;
   font-size: clamp(3rem, 9vw, 8rem);
   line-height: 0.92;
-  text-transform: uppercase;
+  text-transform: lowercase;
   margin: 0;
 }
 
@@ -322,16 +322,14 @@ a {
   display: block;
 }
 
-/* Thirteen licensed display fonts for the hero "Art" style-morph, self-
+/* Eleven licensed display fonts for the hero "Art" style-morph, self-
    hosted from /fonts (not Google-served) - each is a single static weight,
    loaded once and reused across all three case variants of the same face. */
 @font-face { font-family: 'Utopia'; src: url('./fonts/Utopia.ttf') format('truetype'); font-display: swap; }
 @font-face { font-family: 'Achilo'; src: url('./fonts/Achilo.otf') format('opentype'); font-display: swap; }
 @font-face { font-family: 'Caelvin'; src: url('./fonts/Caelvin.ttf') format('truetype'); font-display: swap; }
-@font-face { font-family: 'Condens'; src: url('./fonts/Condens.ttf') format('truetype'); font-display: swap; }
 @font-face { font-family: 'RoseAngel'; src: url('./fonts/RoseAngel.otf') format('opentype'); font-display: swap; }
 @font-face { font-family: 'Urema'; src: url('./fonts/Urema.ttf') format('truetype'); font-display: swap; }
-@font-face { font-family: 'Gakero'; src: url('./fonts/Gakero.ttf') format('truetype'); font-display: swap; }
 @font-face { font-family: 'Mantela'; src: url('./fonts/Mantela.ttf') format('truetype'); font-display: swap; }
 @font-face { font-family: 'Magode'; src: url('./fonts/Magode.ttf') format('truetype'); font-display: swap; }
 @font-face { font-family: 'Awaline'; src: url('./fonts/Awaline.ttf') format('truetype'); font-display: swap; }
@@ -344,7 +342,7 @@ a {
    to get ART/Art/art, so this no longer forces a fixed casing itself.
    Sized to its own content horizontally (not a fixed width) so the
    bounce-dot sitting right after it stays as close as the text allows.
-   Height is fixed, though: the 13 fonts have wildly different internal
+   Height is fixed, though: the fonts have wildly different internal
    line-height metrics, and as an inline-block this element's own box
    height feeds directly into the surrounding line box - left alone, that
    made the whole line (and everything below it: the dash rule, the
@@ -363,7 +361,7 @@ a {
   height: 1em;
   overflow: hidden;
   color: var(--text-primary);
-  animation: art-style-morph 39s infinite;
+  animation: art-style-morph 33s infinite;
 }
 
 /* The full stop after "Art", but alive: a small ball that bounces in place
@@ -408,8 +406,8 @@ a {
   }
 }
 
-/* Thirteen licensed display faces, each shown as ART / Art / art in turn -
-   39 total steps, one per bounce, cycling over a 39s loop matched exactly
+/* Eleven licensed display faces, each shown as ART / Art / art in turn -
+   33 total steps, one per bounce, cycling over a 33s loop matched exactly
    to the ball's 1s period so a new face (or new casing of the current
    face) is live the instant each landing happens. Font-family and
    text-transform can't be interpolated, so the "ease into it" comes from
@@ -419,124 +417,106 @@ a {
    its fall) so the morph reads as timed by the same physical rhythm as
    the bounce itself, not a separate effect bolted on. */
 @keyframes art-style-morph {
-  0%  { opacity: 0.15; font-family: 'Condens', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  0.513%  { opacity: 1; font-family: 'Condens', sans-serif; text-transform: lowercase; }
-  2.051%  { opacity: 1; font-family: 'Condens', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  2.564%  { opacity: 0.15; font-family: 'Megha', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  3.077%  { opacity: 1; font-family: 'Megha', sans-serif; text-transform: lowercase; }
-  4.615%  { opacity: 1; font-family: 'Megha', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  5.128%  { opacity: 0.15; font-family: 'Urema', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  5.641%  { opacity: 1; font-family: 'Urema', sans-serif; text-transform: lowercase; }
-  7.179%  { opacity: 1; font-family: 'Urema', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  7.692%  { opacity: 0.15; font-family: 'Surgena', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  8.205%  { opacity: 1; font-family: 'Surgena', sans-serif; text-transform: lowercase; }
-  9.744%  { opacity: 1; font-family: 'Surgena', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  10.256%  { opacity: 0.15; font-family: 'Urema', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  10.769%  { opacity: 1; font-family: 'Urema', sans-serif; text-transform: uppercase; }
-  12.308%  { opacity: 1; font-family: 'Urema', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  12.821%  { opacity: 0.15; font-family: 'Caelvin', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  13.333%  { opacity: 1; font-family: 'Caelvin', sans-serif; text-transform: lowercase; }
-  14.872%  { opacity: 1; font-family: 'Caelvin', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  15.385%  { opacity: 0.15; font-family: 'Magode', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  15.897%  { opacity: 1; font-family: 'Magode', sans-serif; text-transform: capitalize; }
-  17.436%  { opacity: 1; font-family: 'Magode', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  17.949%  { opacity: 0.15; font-family: 'Caelvin', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  18.462%  { opacity: 1; font-family: 'Caelvin', sans-serif; text-transform: uppercase; }
-  20%  { opacity: 1; font-family: 'Caelvin', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  20.513%  { opacity: 0.15; font-family: 'Achilo', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  21.026%  { opacity: 1; font-family: 'Achilo', sans-serif; text-transform: lowercase; }
-  22.564%  { opacity: 1; font-family: 'Achilo', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  23.077%  { opacity: 0.15; font-family: 'Utopia', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  23.59%  { opacity: 1; font-family: 'Utopia', sans-serif; text-transform: capitalize; }
-  25.128%  { opacity: 1; font-family: 'Utopia', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  25.641%  { opacity: 0.15; font-family: 'Mantela', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  26.154%  { opacity: 1; font-family: 'Mantela', sans-serif; text-transform: capitalize; }
-  27.692%  { opacity: 1; font-family: 'Mantela', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  28.205%  { opacity: 0.15; font-family: 'Condens', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  28.718%  { opacity: 1; font-family: 'Condens', sans-serif; text-transform: uppercase; }
-  30.256%  { opacity: 1; font-family: 'Condens', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  30.769%  { opacity: 0.15; font-family: 'Awaline', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  31.282%  { opacity: 1; font-family: 'Awaline', sans-serif; text-transform: uppercase; }
-  32.821%  { opacity: 1; font-family: 'Awaline', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  33.333%  { opacity: 0.15; font-family: 'Caelvin', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  33.846%  { opacity: 1; font-family: 'Caelvin', sans-serif; text-transform: capitalize; }
-  35.385%  { opacity: 1; font-family: 'Caelvin', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  35.897%  { opacity: 0.15; font-family: 'Utopia', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  36.41%  { opacity: 1; font-family: 'Utopia', sans-serif; text-transform: lowercase; }
-  37.949%  { opacity: 1; font-family: 'Utopia', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  38.462%  { opacity: 0.15; font-family: 'BlackSansa', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  38.974%  { opacity: 1; font-family: 'BlackSansa', sans-serif; text-transform: lowercase; }
-  40.513%  { opacity: 1; font-family: 'BlackSansa', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  41.026%  { opacity: 0.15; font-family: 'Achilo', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  41.538%  { opacity: 1; font-family: 'Achilo', sans-serif; text-transform: capitalize; }
-  43.077%  { opacity: 1; font-family: 'Achilo', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  43.59%  { opacity: 0.15; font-family: 'Mantela', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  44.103%  { opacity: 1; font-family: 'Mantela', sans-serif; text-transform: uppercase; }
-  45.641%  { opacity: 1; font-family: 'Mantela', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  46.154%  { opacity: 0.15; font-family: 'Achilo', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  46.667%  { opacity: 1; font-family: 'Achilo', sans-serif; text-transform: uppercase; }
-  48.205%  { opacity: 1; font-family: 'Achilo', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  48.718%  { opacity: 0.15; font-family: 'Awaline', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  49.231%  { opacity: 1; font-family: 'Awaline', sans-serif; text-transform: lowercase; }
-  50.769%  { opacity: 1; font-family: 'Awaline', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  51.282%  { opacity: 0.15; font-family: 'Magode', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  51.795%  { opacity: 1; font-family: 'Magode', sans-serif; text-transform: uppercase; }
-  53.333%  { opacity: 1; font-family: 'Magode', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  53.846%  { opacity: 0.15; font-family: 'BlackSansa', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  54.359%  { opacity: 1; font-family: 'BlackSansa', sans-serif; text-transform: capitalize; }
-  55.897%  { opacity: 1; font-family: 'BlackSansa', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  56.41%  { opacity: 0.15; font-family: 'Utopia', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  56.923%  { opacity: 1; font-family: 'Utopia', sans-serif; text-transform: uppercase; }
-  58.462%  { opacity: 1; font-family: 'Utopia', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  58.974%  { opacity: 0.15; font-family: 'Condens', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  59.487%  { opacity: 1; font-family: 'Condens', sans-serif; text-transform: capitalize; }
-  61.026%  { opacity: 1; font-family: 'Condens', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  61.538%  { opacity: 0.15; font-family: 'Gakero', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  62.051%  { opacity: 1; font-family: 'Gakero', sans-serif; text-transform: capitalize; }
-  63.59%  { opacity: 1; font-family: 'Gakero', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  64.103%  { opacity: 0.15; font-family: 'Surgena', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  64.615%  { opacity: 1; font-family: 'Surgena', sans-serif; text-transform: uppercase; }
-  66.154%  { opacity: 1; font-family: 'Surgena', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  66.667%  { opacity: 0.15; font-family: 'Awaline', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  67.179%  { opacity: 1; font-family: 'Awaline', sans-serif; text-transform: capitalize; }
-  68.718%  { opacity: 1; font-family: 'Awaline', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  69.231%  { opacity: 0.15; font-family: 'Gakero', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  69.744%  { opacity: 1; font-family: 'Gakero', sans-serif; text-transform: uppercase; }
-  71.282%  { opacity: 1; font-family: 'Gakero', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  71.795%  { opacity: 0.15; font-family: 'Urema', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  72.308%  { opacity: 1; font-family: 'Urema', sans-serif; text-transform: capitalize; }
-  73.846%  { opacity: 1; font-family: 'Urema', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  74.359%  { opacity: 0.15; font-family: 'BlackSansa', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  74.872%  { opacity: 1; font-family: 'BlackSansa', sans-serif; text-transform: uppercase; }
-  76.41%  { opacity: 1; font-family: 'BlackSansa', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  76.923%  { opacity: 0.15; font-family: 'Gakero', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  77.436%  { opacity: 1; font-family: 'Gakero', sans-serif; text-transform: lowercase; }
-  78.974%  { opacity: 1; font-family: 'Gakero', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  79.487%  { opacity: 0.15; font-family: 'RoseAngel', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  80%  { opacity: 1; font-family: 'RoseAngel', sans-serif; text-transform: lowercase; }
-  81.538%  { opacity: 1; font-family: 'RoseAngel', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  82.051%  { opacity: 0.15; font-family: 'Megha', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  82.564%  { opacity: 1; font-family: 'Megha', sans-serif; text-transform: uppercase; }
-  84.103%  { opacity: 1; font-family: 'Megha', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  84.615%  { opacity: 0.15; font-family: 'Magode', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  85.128%  { opacity: 1; font-family: 'Magode', sans-serif; text-transform: lowercase; }
-  86.667%  { opacity: 1; font-family: 'Magode', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  87.179%  { opacity: 0.15; font-family: 'RoseAngel', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  87.692%  { opacity: 1; font-family: 'RoseAngel', sans-serif; text-transform: capitalize; }
-  89.231%  { opacity: 1; font-family: 'RoseAngel', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  89.744%  { opacity: 0.15; font-family: 'Surgena', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  90.256%  { opacity: 1; font-family: 'Surgena', sans-serif; text-transform: capitalize; }
-  91.795%  { opacity: 1; font-family: 'Surgena', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  92.308%  { opacity: 0.15; font-family: 'Megha', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  92.821%  { opacity: 1; font-family: 'Megha', sans-serif; text-transform: capitalize; }
-  94.359%  { opacity: 1; font-family: 'Megha', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  94.872%  { opacity: 0.15; font-family: 'RoseAngel', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  95.385%  { opacity: 1; font-family: 'RoseAngel', sans-serif; text-transform: uppercase; }
-  96.923%  { opacity: 1; font-family: 'RoseAngel', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  97.436%  { opacity: 0.15; font-family: 'Mantela', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
-  97.949%  { opacity: 1; font-family: 'Mantela', sans-serif; text-transform: lowercase; }
-  99.487%  { opacity: 1; font-family: 'Mantela', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
-  100% { opacity: 0.15; font-family: 'Condens', sans-serif; text-transform: lowercase; }
+  0%  { opacity: 0.15; font-family: 'BlackSansa', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  0.606%  { opacity: 1; font-family: 'BlackSansa', sans-serif; text-transform: uppercase; }
+  2.424%  { opacity: 1; font-family: 'BlackSansa', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  3.03%  { opacity: 0.15; font-family: 'Megha', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  3.636%  { opacity: 1; font-family: 'Megha', sans-serif; text-transform: uppercase; }
+  5.455%  { opacity: 1; font-family: 'Megha', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  6.061%  { opacity: 0.15; font-family: 'Caelvin', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  6.667%  { opacity: 1; font-family: 'Caelvin', sans-serif; text-transform: uppercase; }
+  8.485%  { opacity: 1; font-family: 'Caelvin', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  9.091%  { opacity: 0.15; font-family: 'Utopia', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  9.697%  { opacity: 1; font-family: 'Utopia', sans-serif; text-transform: uppercase; }
+  11.515%  { opacity: 1; font-family: 'Utopia', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  12.121%  { opacity: 0.15; font-family: 'Magode', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  12.727%  { opacity: 1; font-family: 'Magode', sans-serif; text-transform: lowercase; }
+  14.545%  { opacity: 1; font-family: 'Magode', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  15.152%  { opacity: 0.15; font-family: 'BlackSansa', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  15.758%  { opacity: 1; font-family: 'BlackSansa', sans-serif; text-transform: lowercase; }
+  17.576%  { opacity: 1; font-family: 'BlackSansa', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  18.182%  { opacity: 0.15; font-family: 'Megha', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  18.788%  { opacity: 1; font-family: 'Megha', sans-serif; text-transform: lowercase; }
+  20.606%  { opacity: 1; font-family: 'Megha', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  21.212%  { opacity: 0.15; font-family: 'Magode', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  21.818%  { opacity: 1; font-family: 'Magode', sans-serif; text-transform: capitalize; }
+  23.636%  { opacity: 1; font-family: 'Magode', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  24.242%  { opacity: 0.15; font-family: 'BlackSansa', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  24.848%  { opacity: 1; font-family: 'BlackSansa', sans-serif; text-transform: capitalize; }
+  26.667%  { opacity: 1; font-family: 'BlackSansa', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  27.273%  { opacity: 0.15; font-family: 'Urema', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  27.879%  { opacity: 1; font-family: 'Urema', sans-serif; text-transform: capitalize; }
+  29.697%  { opacity: 1; font-family: 'Urema', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  30.303%  { opacity: 0.15; font-family: 'Achilo', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  30.909%  { opacity: 1; font-family: 'Achilo', sans-serif; text-transform: lowercase; }
+  32.727%  { opacity: 1; font-family: 'Achilo', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  33.333%  { opacity: 0.15; font-family: 'Utopia', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  33.939%  { opacity: 1; font-family: 'Utopia', sans-serif; text-transform: capitalize; }
+  35.758%  { opacity: 1; font-family: 'Utopia', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  36.364%  { opacity: 0.15; font-family: 'Achilo', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  36.97%  { opacity: 1; font-family: 'Achilo', sans-serif; text-transform: capitalize; }
+  38.788%  { opacity: 1; font-family: 'Achilo', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  39.394%  { opacity: 0.15; font-family: 'Caelvin', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  40%  { opacity: 1; font-family: 'Caelvin', sans-serif; text-transform: capitalize; }
+  41.818%  { opacity: 1; font-family: 'Caelvin', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  42.424%  { opacity: 0.15; font-family: 'RoseAngel', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  43.03%  { opacity: 1; font-family: 'RoseAngel', sans-serif; text-transform: capitalize; }
+  44.848%  { opacity: 1; font-family: 'RoseAngel', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  45.455%  { opacity: 0.15; font-family: 'Mantela', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  46.061%  { opacity: 1; font-family: 'Mantela', sans-serif; text-transform: lowercase; }
+  47.879%  { opacity: 1; font-family: 'Mantela', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  48.485%  { opacity: 0.15; font-family: 'Urema', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  49.091%  { opacity: 1; font-family: 'Urema', sans-serif; text-transform: uppercase; }
+  50.909%  { opacity: 1; font-family: 'Urema', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  51.515%  { opacity: 0.15; font-family: 'Awaline', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  52.121%  { opacity: 1; font-family: 'Awaline', sans-serif; text-transform: uppercase; }
+  53.939%  { opacity: 1; font-family: 'Awaline', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  54.545%  { opacity: 0.15; font-family: 'Surgena', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  55.152%  { opacity: 1; font-family: 'Surgena', sans-serif; text-transform: uppercase; }
+  56.97%  { opacity: 1; font-family: 'Surgena', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  57.576%  { opacity: 0.15; font-family: 'Caelvin', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  58.182%  { opacity: 1; font-family: 'Caelvin', sans-serif; text-transform: lowercase; }
+  60%  { opacity: 1; font-family: 'Caelvin', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  60.606%  { opacity: 0.15; font-family: 'Surgena', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  61.212%  { opacity: 1; font-family: 'Surgena', sans-serif; text-transform: capitalize; }
+  63.03%  { opacity: 1; font-family: 'Surgena', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  63.636%  { opacity: 0.15; font-family: 'Megha', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  64.242%  { opacity: 1; font-family: 'Megha', sans-serif; text-transform: capitalize; }
+  66.061%  { opacity: 1; font-family: 'Megha', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  66.667%  { opacity: 0.15; font-family: 'RoseAngel', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  67.273%  { opacity: 1; font-family: 'RoseAngel', sans-serif; text-transform: uppercase; }
+  69.091%  { opacity: 1; font-family: 'RoseAngel', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  69.697%  { opacity: 0.15; font-family: 'Magode', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  70.303%  { opacity: 1; font-family: 'Magode', sans-serif; text-transform: uppercase; }
+  72.121%  { opacity: 1; font-family: 'Magode', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  72.727%  { opacity: 0.15; font-family: 'Mantela', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  73.333%  { opacity: 1; font-family: 'Mantela', sans-serif; text-transform: uppercase; }
+  75.152%  { opacity: 1; font-family: 'Mantela', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  75.758%  { opacity: 0.15; font-family: 'Awaline', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  76.364%  { opacity: 1; font-family: 'Awaline', sans-serif; text-transform: capitalize; }
+  78.182%  { opacity: 1; font-family: 'Awaline', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  78.788%  { opacity: 0.15; font-family: 'Achilo', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  79.394%  { opacity: 1; font-family: 'Achilo', sans-serif; text-transform: uppercase; }
+  81.212%  { opacity: 1; font-family: 'Achilo', sans-serif; text-transform: uppercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  81.818%  { opacity: 0.15; font-family: 'Urema', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  82.424%  { opacity: 1; font-family: 'Urema', sans-serif; text-transform: lowercase; }
+  84.242%  { opacity: 1; font-family: 'Urema', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  84.848%  { opacity: 0.15; font-family: 'Utopia', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  85.455%  { opacity: 1; font-family: 'Utopia', sans-serif; text-transform: lowercase; }
+  87.273%  { opacity: 1; font-family: 'Utopia', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  87.879%  { opacity: 0.15; font-family: 'Mantela', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  88.485%  { opacity: 1; font-family: 'Mantela', sans-serif; text-transform: capitalize; }
+  90.303%  { opacity: 1; font-family: 'Mantela', sans-serif; text-transform: capitalize; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  90.909%  { opacity: 0.15; font-family: 'Surgena', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  91.515%  { opacity: 1; font-family: 'Surgena', sans-serif; text-transform: lowercase; }
+  93.333%  { opacity: 1; font-family: 'Surgena', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  93.939%  { opacity: 0.15; font-family: 'RoseAngel', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  94.545%  { opacity: 1; font-family: 'RoseAngel', sans-serif; text-transform: lowercase; }
+  96.364%  { opacity: 1; font-family: 'RoseAngel', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  96.97%  { opacity: 0.15; font-family: 'Awaline', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+  97.576%  { opacity: 1; font-family: 'Awaline', sans-serif; text-transform: lowercase; }
+  99.394%  { opacity: 1; font-family: 'Awaline', sans-serif; text-transform: lowercase; animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45); }
+  100% { opacity: 0.15; font-family: 'BlackSansa', sans-serif; text-transform: uppercase; }
 }
 
 
@@ -757,10 +737,10 @@ a {
 
 .category-title {
   margin: 0.1rem 0 0;
-  font-family: 'Michroma', sans-serif;
+  font-family: 'Surgena', sans-serif;
   font-size: clamp(2rem, 5vw, 3.5rem);
   letter-spacing: 0.03em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   line-height: 1;
 }
 
@@ -1919,9 +1899,9 @@ a {
 }
 
 .info-title {
-  font-family: 'Michroma', sans-serif;
+  font-family: 'Surgena', sans-serif;
   font-size: clamp(1.3rem, 2.4vw, 1.9rem);
-  text-transform: none;
+  text-transform: lowercase;
   letter-spacing: 0;
 }
 
