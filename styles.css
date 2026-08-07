@@ -630,24 +630,6 @@ a {
   font-size: 1.25rem;
 }
 
-.about-badge {
-  position: absolute;
-  right: -1.4rem;
-  bottom: -1.4rem;
-  width: 130px;
-  aspect-ratio: 1;
-  border-radius: 999px;
-  border: 1px solid var(--accent);
-  display: grid;
-  place-items: center;
-  font-size: 0.66rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--accent);
-  text-align: center;
-  background: var(--bg);
-}
-
 .cards-grid {
   display: grid;
   gap: 1rem;
@@ -1528,10 +1510,6 @@ a {
     display: none;
   }
 
-  .about-badge {
-    position: static;
-    margin-top: 1.4rem;
-  }
 }
 
 @media (max-width: 768px) {

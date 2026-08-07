@@ -89,10 +89,8 @@
   <div class="page-loader" id="pageLoader" aria-hidden="true"></div>
   <script>
     try {
-      var lastTheme = localStorage.getItem('mo-theme-cycle');
-      var nextTheme = lastTheme === 'light' ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', nextTheme);
-      localStorage.setItem('mo-theme-cycle', nextTheme);
+      var storedTheme = localStorage.getItem('mo-theme');
+      if (storedTheme) document.documentElement.setAttribute('data-theme', storedTheme);
     } catch (e) {}
     try {
       if (sessionStorage.getItem('mo-nav') === '1') {
@@ -142,7 +140,7 @@
     <section class="hero" id="home">
       <div class="hero-bg" aria-hidden="true"></div>
       <div class="hero-side reveal" data-animate>
-        <span>Follow Us</span>
+        <span>Follow Me</span>
         <a href="https://www.instagram.com/mofe.osz/" target="_blank" rel="noreferrer" aria-label="Instagram">IG</a>
         <a href="https://www.linkedin.com/in/mofeoluwa-oladeji/" target="_blank" rel="noreferrer" aria-label="LinkedIn">IN</a>
         <a href="https://www.youtube.com/@mofeoluwaoladeji" target="_blank" rel="noreferrer" aria-label="YouTube">YT</a>
@@ -168,10 +166,9 @@
             <span class="section-label">About</span>
             <h2 class="section-title">About Me</h2>
           </div>
-          <div class="reveal" data-animate data-delay="80" style="position:relative;">
+          <div class="reveal" data-animate data-delay="80">
             <p>I'm a creative thinker with a wild imagination and a passion for animation and storytelling. Experienced in 3D animation, drawing, and digital visual arts — always looking to bring fresh ideas to life.</p>
             <p class="about-quote">“Turning imagination into crafted motion, one frame at a time.”</p>
-            <div class="about-badge">3+ Years<br />Creative Practice</div>
           </div>
         </div>
       </div>

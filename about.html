@@ -72,10 +72,8 @@
   <div class="page-loader" id="pageLoader" aria-hidden="true"></div>
   <script>
     try {
-      var lastTheme = localStorage.getItem('mo-theme-cycle');
-      var nextTheme = lastTheme === 'light' ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', nextTheme);
-      localStorage.setItem('mo-theme-cycle', nextTheme);
+      var storedTheme = localStorage.getItem('mo-theme');
+      if (storedTheme) document.documentElement.setAttribute('data-theme', storedTheme);
     } catch (e) {}
     try {
       if (sessionStorage.getItem('mo-nav') === '1') {
