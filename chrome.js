@@ -387,7 +387,15 @@
   document.body.appendChild(grain);
 
   /* ---------------- fluid particle swarm ---------------- */
-  if (fine) {
+  /* Runs on every device, not just fine-pointer ones - it used to be
+     gated behind `if (fine)` alongside the custom cursor above, which
+     meant touch devices never got the canvas at all. It's otherwise
+     fully self-contained (its own cx/cy, its own pointermove listener a
+     few lines down), so lifting the gate here doesn't touch anything in
+     the custom-cursor block above; a touchstart/touchmove listener is
+     added below to feed the same cx/cy on devices where pointermove
+     alone doesn't track a resting position. */
+  {
     var canvas = document.createElement('canvas');
     canvas.id = 'gas-canvas';
     canvas.setAttribute('aria-hidden', 'true');
@@ -454,6 +462,17 @@
       cy = e.clientY;
       lastMoveTime = performance.now();
     }, { passive: true });
+    /* Touch devices don't fire pointermove while just resting a finger -
+       only during an active drag - so a plain touchstart/touchmove pair
+       covers taps and drags alike, giving the swarm a target to follow. */
+    function trackTouch(e) {
+      if (!e.touches || !e.touches[0]) return;
+      cx = e.touches[0].clientX;
+      cy = e.touches[0].clientY;
+      lastMoveTime = performance.now();
+    }
+    window.addEventListener('touchstart', trackTouch, { passive: true });
+    window.addEventListener('touchmove', trackTouch, { passive: true });
 
     /* A click (or a page-transition reveal) sends every particle flying
        outward from wherever the swarm was centered, then the standing
