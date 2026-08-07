@@ -672,7 +672,6 @@ a {
 .skill-card:hover {
   transform: translateY(-6px);
   border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent), 0 20px 40px var(--accent-glow);
 }
 
 .skill-icon {
