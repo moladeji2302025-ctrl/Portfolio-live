@@ -291,6 +291,8 @@ a {
 .hero {
   min-height: calc(100vh - var(--nav-height));
   position: relative;
+  display: flex;
+  align-items: center;
   overflow: hidden;
 }
 
@@ -314,7 +316,7 @@ a {
   font-family: 'Surgena', sans-serif;
   font-size: clamp(3rem, 9vw, 8rem);
   line-height: 0.92;
-  text-transform: lowercase;
+  text-transform: capitalize;
   margin: 0;
 }
 
