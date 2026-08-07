@@ -72,8 +72,10 @@
   <div class="page-loader" id="pageLoader" aria-hidden="true"></div>
   <script>
     try {
-      var storedTheme = localStorage.getItem('mo-theme');
-      if (storedTheme) document.documentElement.setAttribute('data-theme', storedTheme);
+      var storedTheme = localStorage.getItem('mo-theme') || 'light';
+      var arrivingViaNav = sessionStorage.getItem('mo-nav') === '1';
+      var loadTheme = arrivingViaNav ? (storedTheme === 'light' ? 'dark' : 'light') : storedTheme;
+      document.documentElement.setAttribute('data-theme', loadTheme);
     } catch (e) {}
     try {
       if (sessionStorage.getItem('mo-nav') === '1') {

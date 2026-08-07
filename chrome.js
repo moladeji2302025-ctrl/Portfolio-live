@@ -219,6 +219,18 @@
       var OUT_DELAY = 480;
 
       function revealPage() {
+        /* The load state itself renders in the alternate of the persisted
+           theme (set by the inline pre-paint script before first paint) -
+           purely a load-state effect. Switch back to the real persisted
+           theme now, before the cover disperses, so the actual page
+           content underneath is revealed in the correct theme rather than
+           the alternate one the loader was shown in. */
+        try {
+          var persistedTheme = localStorage.getItem('mo-theme') || 'light';
+          root.setAttribute('data-theme', persistedTheme);
+          if (typeof syncThemeSwitch === 'function') syncThemeSwitch();
+          if (window.__refreshGasColors) window.__refreshGasColors();
+        } catch (e) {}
         triggerGentleRelease();
         setTimeout(function () {
           pageLoader.classList.remove('is-instant');
@@ -260,6 +272,15 @@
         setCanvasFront(true);
         pageLoader.classList.add('is-active');
         try { sessionStorage.setItem('mo-nav', '1'); } catch (e) {}
+        /* Flip to the alternate theme the instant the cover activates here
+           too, not just on the destination page - otherwise this brief
+           outgoing cover shows the normal theme for an instant before the
+           destination page's load state flips to the alternate, which
+           would read as a jarring mid-transition theme change. */
+        try {
+          var outgoingPersisted = localStorage.getItem('mo-theme') || 'light';
+          root.setAttribute('data-theme', outgoingPersisted === 'light' ? 'dark' : 'light');
+        } catch (e) {}
         setTimeout(function () {
           window.location.href = href;
         }, OUT_DELAY);
