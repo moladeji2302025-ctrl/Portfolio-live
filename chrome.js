@@ -520,6 +520,14 @@
     var swirlK = reducedMotion ? 0.006 : 0.012;
     var repelK = 0.9;
     var damping = 0.82;
+    /* A preferred radius, not just a spring toward the center: particles
+       inside it get pushed out, particles beyond it get pulled in, so the
+       swarm settles into a comfortable ring rather than a filled disk -
+       sparse right at the cursor and sparse out at the far edge, densest
+       in the middle band between them. Same particle count and overall
+       footprint as before, just redistributed. */
+    var RING_RADIUS = 240;
+    var RING_K = 0.09;
     /* Particle count was halved (1040 -> 520) to reduce visual density
        against the text; spacing is scaled up by sqrt(2) so the swarm's
        overall footprint (count x spacing^2 for a packed 2D cluster)
@@ -692,6 +700,14 @@
         var ay = (dy / dist) * pullK * dist * pullMult;
         ax += (-dy / dist) * swirlK * Math.min(dist, 340) * pullMult;
         ay += (dx / dist) * swirlK * Math.min(dist, 340) * pullMult;
+
+        /* Ring-shaping force: outward when closer to the cursor than
+           RING_RADIUS, inward when farther - hollows out the center and
+           caps the outer edge so density concentrates in the middle band
+           instead of filling a disk evenly. */
+        var toRing = (RING_RADIUS - dist) * RING_K * pullMult;
+        ax += -(dx / dist) * toRing;
+        ay += -(dy / dist) * toRing;
 
         if (speedFactor > 0.001) {
           /* Particles trailing behind the direction of travel get less pull
