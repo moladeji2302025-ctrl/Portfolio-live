@@ -791,14 +791,17 @@
         /* Full size only lives in a middle "sweet spot" band - particles
            shrink smoothly both as they close in on the cursor/target and as
            they drift far out past it, since dist changes constantly as the
-           swarm moves either direction. At the extremes they don't just
+           swarm moves either direction. Near/far radii widened well past
+           the old 130/340 thresholds so the extreme (shrinking/pulsing)
+           zones cover much more of the swarm, leaving only a narrower
+           full-size band in between. At the extremes they don't just
            shrink to a fixed tiny size, they keep pulsing between "extremely
            small" and "nearly invisible" continuously (own phase per
            particle, so it shimmers rather than blinking in unison) - always
            running, not just while idle, since this is about position
            relative to the cursor rather than the ambient idle breathing. */
-        var nearT = Math.max(0, 1 - dist / 130);
-        var farT = Math.min(1, Math.max(0, (dist - 340) / 300));
+        var nearT = Math.max(0, 1 - dist / 230);
+        var farT = Math.min(1, Math.max(0, (dist - 260) / 320));
         var extremeT = Math.max(nearT, farT);
         var extremePulse = 0.5 + Math.sin(t * 0.0055 + p.wobblePhase) * 0.5;
         var extremeSize = 0.02 + extremePulse * 0.06;
