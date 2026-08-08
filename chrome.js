@@ -428,13 +428,13 @@
        nudged sideways for a shared swirl. The cluster's form emerges frame
        to frame from those local forces - that's what makes it read as
        fluid rather than a rigid rotating body. */
-    var COUNT = reducedMotion ? 480 : 1040;
+    var COUNT = reducedMotion ? 240 : 520;
     var cx = window.innerWidth / 2;
     var cy = window.innerHeight / 2;
     var particles = [];
     for (var i = 0; i < COUNT; i++) {
       var seedAngle = Math.random() * Math.PI * 2;
-      var seedR = Math.random() * 260;
+      var seedR = Math.random() * 368;
       particles.push({
         x: cx + Math.cos(seedAngle) * seedR,
         y: cy + Math.sin(seedAngle) * seedR,
@@ -520,7 +520,11 @@
     var swirlK = reducedMotion ? 0.006 : 0.012;
     var repelK = 0.9;
     var damping = 0.82;
-    var baseSpacing = 260;
+    /* Particle count was halved (1040 -> 520) to reduce visual density
+       against the text; spacing is scaled up by sqrt(2) so the swarm's
+       overall footprint (count x spacing^2 for a packed 2D cluster)
+       stays the same size as before, not smaller. */
+    var baseSpacing = 368;
     var loaderSpacing = baseSpacing * 2.1;
 
     function drawGas(t) {
