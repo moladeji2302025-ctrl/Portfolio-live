@@ -791,10 +791,18 @@
         /* Full size only lives in a middle "sweet spot" band - particles
            shrink smoothly both as they close in on the cursor/target and as
            they drift far out past it, since dist changes constantly as the
-           swarm moves either direction. */
+           swarm moves either direction. At the extremes they don't just
+           shrink to a fixed tiny size, they keep pulsing between "extremely
+           small" and "nearly invisible" continuously (own phase per
+           particle, so it shimmers rather than blinking in unison) - always
+           running, not just while idle, since this is about position
+           relative to the cursor rather than the ambient idle breathing. */
         var nearT = Math.max(0, 1 - dist / 130);
         var farT = Math.min(1, Math.max(0, (dist - 340) / 300));
-        var sizeMult = 1 - nearT * 0.9 - farT * 0.4;
+        var extremeT = Math.max(nearT, farT);
+        var extremePulse = 0.5 + Math.sin(t * 0.0055 + p.wobblePhase) * 0.5;
+        var extremeSize = 0.02 + extremePulse * 0.06;
+        var sizeMult = 1 - extremeT * (1 - extremeSize);
 
         ctx.save();
         ctx.translate(p.x, p.y);
