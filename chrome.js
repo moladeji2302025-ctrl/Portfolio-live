@@ -422,21 +422,17 @@
     function refreshGasColors() {} /* kept as a no-op so theme toggle callers stay valid */
     window.__refreshGasColors = refreshGasColors;
 
-    /* A starfield, not a swarm: every particle sits at a fixed home
-       position scattered sparsely across the whole page and never moves -
-       nothing is ever pulled toward or pushed away from the cursor.
-       Proximity to the cursor only changes a particle's SIZE, easing it
-       between three states: tiny-and-flickering-toward-invisible when far
-       away, briefly restored to its full original size in a "sweet spot"
-       band around the cursor, and tiny-but-never-quite-invisible right at
-       the cursor itself. Each particle's own flicker is a random walk
-       (a new random target size picked at a random interval, eased toward
-       smoothly) rather than a synchronized sine wave, so nothing pulses in
-       unison or on a fixed beat - it reads as scattered, independent
-       twinkling. Density scales with viewport area; regenerated
-       (debounced) on resize to keep covering it. */
-    var DENSITY = reducedMotion ? 0.00006 : 0.00012;
-    var MAX_COUNT = reducedMotion ? 350 : 700;
+    /* Every particle sits at a fixed home position scattered across the
+       whole page - nothing moves to follow the cursor anymore. What
+       changes each frame is purely how each particle renders (size, glow,
+       color) based on its distance from the cursor, using the exact same
+       formulas the old cursor-following cluster used for that. Since a
+       particle is already sitting wherever the cursor moves to, there's no
+       travel distance and therefore no catch-up lag - the "reveal" is
+       instant, just a size/visibility change, not a chase. Regenerated
+       (debounced) on resize to keep covering the full viewport. */
+    var DENSITY = reducedMotion ? 0.00024 : 0.00048;
+    var MAX_COUNT = reducedMotion ? 900 : 2400;
     var particles = [];
     function seedParticles() {
       var count = Math.min(MAX_COUNT, Math.round(window.innerWidth * window.innerHeight * DENSITY));
@@ -447,10 +443,8 @@
           homeY: Math.random() * window.innerHeight,
           len: 3.5 + Math.random() * 5,
           width: 1.3 + Math.random() * 1.4,
-          pulseCurrent: Math.random(),
-          pulseTarget: Math.random(),
-          pulseNextChange: 0,
-          pulseEase: 0.008 + Math.random() * 0.022
+          wobblePhase: Math.random() * Math.PI * 2,
+          wobbleFreq: 0.6 + Math.random() * 0.8
         });
       }
     }
@@ -483,8 +477,8 @@
     window.addEventListener('touchmove', trackTouch, { passive: true });
 
     /* A click (or a page-transition reveal) still drives the traveling
-       glow/size pulse below via burstEnergy - purely a timing clock, no
-       particle ever moves for it. */
+       glow/size pulse below via burstEnergy - purely a timing clock now,
+       since there's no swarm position left to kick outward. */
     var burstAt = -99999;
     function burstNow() { burstAt = performance.now(); }
     document.addEventListener('click', burstNow);
@@ -515,9 +509,16 @@
         }
       }
 
+      /* Ambient idle pulse: a single shared phase drives both the blur and
+         the reveal-radius breathing below, so the visible zone around the
+         cursor expands as it blurs and contracts back as it sharpens,
+         instead of blur being the only thing pulsing. Scoped to the idle
+         (non-transition) state only - it fades to zero the moment the
+         cursor starts moving again. */
       var idleFor = t - lastMoveTime;
       var idleT = inTransition ? 0 : Math.max(0, Math.min(1, (idleFor - 600) / 2600));
       var pulseSin = Math.sin(t * 0.0014);
+      var ambientRadiusPulse = 1 + idleT * pulseSin * 0.3;
 
       if (releasing) {
         /* Blur ramps up hard as the load-state reveal dissolves away. */
@@ -543,7 +544,8 @@
       /* A click's energy pulse is a genuine traveling wavefront, not a
          shared on/off flash: it reaches particles closest to the cursor
          first and arrives at farther ones later, timed by distance over a
-         fixed propagation speed. */
+         fixed propagation speed. Each particle computes its own arrival
+         time from `dist` inside the loop below. */
       var BURST_WAVE_SPEED = 1.0;
       var BURST_PULSE_WIDTH = 520;
       var BURST_ATTACK = 0.22;
@@ -555,10 +557,11 @@
       var waveAmp = inTransition ? 1.5 : 0.3;
       var waveSpatialFreq = inTransition ? 0.022 : 0.045;
       var waveTimeFreq = inTransition ? 0.0046 : 0.0032;
-      /* The reveal radius breathes a little with hover and the load-state
-         pulse, widening the sweet-spot band rather than moving anything. */
+      /* During the load state the reveal radius itself breathes - shrinks
+         in tight, then expands back out - on top of a wider base radius,
+         rather than staying at one fixed width. */
       var loaderRadiusPulse = inTransition ? 0.4 + (0.5 + Math.sin(t * 0.0016) * 0.5) * 0.9 : 1;
-      var radiusMult = (inTransition ? loaderRadiusPulse : 1) * (1 + hoverBoost * 0.5);
+      var radiusMult = (inTransition ? loaderRadiusPulse : ambientRadiusPulse) * (1 + hoverBoost * 0.7);
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -567,10 +570,14 @@
 
       for (var i = 0; i < particles.length; i++) {
         var p = particles[i];
-        var px = p.homeX;
-        var py = p.homeY;
+        /* A small, always-on drift around the fixed home position, own
+           phase per particle, so the field still reads as alive even where
+           nothing is near the cursor to reveal it. */
+        var px = p.homeX + Math.sin(t * 0.0006 * p.wobbleFreq + p.wobblePhase) * 6;
+        var py = p.homeY + Math.cos(t * 0.00052 * p.wobbleFreq + p.wobblePhase * 1.3) * 6;
 
-        var dx = tx - px, dy = ty - py;
+        var dx = tx - px;
+        var dy = ty - py;
         var dist = Math.sqrt(dx * dx + dy * dy) || 0.001;
         var wave = Math.sin(t * waveTimeFreq - dist * waveSpatialFreq);
 
@@ -578,7 +585,9 @@
            until the ring (expanding outward from the cursor at
            BURST_WAVE_SPEED) actually reaches its distance, then an eased
            rise as the leading edge of the wave hits it followed by an
-           eased fall as it passes on by. */
+           eased fall as it passes on by - a shockwave crest, not a
+           symmetric blip. Sine easing on both halves so the crest breathes
+           in and out smoothly instead of snapping. */
         var burstArrival = dist / BURST_WAVE_SPEED;
         var burstEnergy = 0;
         var burstLocalT = sinceBurst - burstArrival;
@@ -608,30 +617,22 @@
         lightness += burstEnergy * (light ? 32 : 26);
         if (light) alpha = Math.min(1, alpha * 1.6);
 
-        /* Three-zone size: tiny/flickering-toward-invisible far away,
-           briefly restored to full original size in the sweet-spot band
-           around the cursor, tiny-but-not-invisible right at the cursor.
-           nearT/farT locate which of the two "pole" zones (if either)
-           this particle is in; extremeT is how deep into whichever pole.
-           The flicker itself is each particle's own random walk
-           (pulseCurrent easing toward an occasionally-re-randomized
-           pulseTarget), not a synchronized wave, so it never pulses in
-           unison or on a fixed beat. */
-        var nearT = Math.max(0, 1 - dist / (90 * radiusMult));
-        var farT = Math.min(1, Math.max(0, (dist - 130 * radiusMult) / (260 * radiusMult)));
+        /* Full size only lives in a middle "sweet spot" band around the
+           cursor - particles shrink smoothly both closer in and farther
+           out, since dist changes constantly as the cursor moves. At the
+           extremes they don't just shrink to a fixed tiny size, they keep
+           pulsing between "extremely small" and "nearly invisible"
+           continuously (own phase per particle, so it shimmers rather than
+           blinking in unison) - always running, not just while idle, since
+           this is about position relative to the cursor rather than the
+           ambient idle breathing. radiusMult breathes the whole band
+           in/out (idle pulse, hover expansion, load-state pulse). */
+        var nearT = Math.max(0, 1 - dist / (230 * radiusMult));
+        var farT = Math.min(1, Math.max(0, (dist - 260 * radiusMult) / (320 * radiusMult)));
         var extremeT = Math.max(nearT, farT);
-        var atNearPole = nearT >= farT;
-
-        if (t > p.pulseNextChange) {
-          p.pulseTarget = Math.random();
-          p.pulseNextChange = t + 400 + Math.random() * 1400;
-        }
-        p.pulseCurrent += (p.pulseTarget - p.pulseCurrent) * p.pulseEase;
-
-        var pulseFloor = atNearPole ? 0.02 : 0.005;
-        var pulseCeil = atNearPole ? 0.12 : 0.02;
-        var pulsedExtremeSize = pulseFloor + p.pulseCurrent * (pulseCeil - pulseFloor);
-        var sizeMult = 1 - extremeT * (1 - pulsedExtremeSize);
+        var extremePulse = 0.5 + Math.sin(t * 0.0055 + p.wobblePhase) * 0.5;
+        var extremeSize = 0.02 + extremePulse * 0.06;
+        var sizeMult = 1 - extremeT * (1 - extremeSize);
 
         ctx.save();
         ctx.translate(px, py);
