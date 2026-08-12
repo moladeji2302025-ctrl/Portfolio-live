@@ -422,41 +422,40 @@
     function refreshGasColors() {} /* kept as a no-op so theme toggle callers stay valid */
     window.__refreshGasColors = refreshGasColors;
 
-    /* Every particle sits at a fixed home position scattered across the
-       whole page - nothing moves to follow the cursor anymore. What
-       changes each frame is purely how each particle renders (size, glow,
-       color) based on its distance from the cursor, using the exact same
-       formulas the old cursor-following cluster used for that. Since a
-       particle is already sitting wherever the cursor moves to, there's no
-       travel distance and therefore no catch-up lag - the "reveal" is
-       instant, just a size/visibility change, not a chase. Regenerated
-       (debounced) on resize to keep covering the full viewport. */
-    var DENSITY = reducedMotion ? 0.00024 : 0.00048;
-    var MAX_COUNT = reducedMotion ? 900 : 2400;
-    var particles = [];
-    function seedParticles() {
-      var count = Math.min(MAX_COUNT, Math.round(window.innerWidth * window.innerHeight * DENSITY));
-      particles = [];
-      for (var i = 0; i < count; i++) {
-        particles.push({
-          homeX: Math.random() * window.innerWidth,
-          homeY: Math.random() * window.innerHeight,
-          len: 3.5 + Math.random() * 5,
-          width: 1.3 + Math.random() * 1.4,
-          wobblePhase: Math.random() * Math.PI * 2,
-          wobbleFreq: 0.6 + Math.random() * 0.8
-        });
-      }
-    }
-    seedParticles();
-    var resizeReseedTimer = null;
-    window.addEventListener('resize', function () {
-      clearTimeout(resizeReseedTimer);
-      resizeReseedTimer = setTimeout(seedParticles, 200);
-    });
-
+    /* A real simulation, not a shape formula: every particle has its own
+       velocity and is individually pulled toward the cursor, individually
+       pushed apart from neighbors that get too close, and individually
+       nudged sideways for a shared swirl. The cluster's form emerges frame
+       to frame from those local forces - that's what makes it read as
+       fluid rather than a rigid rotating body. */
+    var COUNT = reducedMotion ? 240 : 520;
     var cx = window.innerWidth / 2;
     var cy = window.innerHeight / 2;
+    var particles = [];
+    for (var i = 0; i < COUNT; i++) {
+      var seedAngle = Math.random() * Math.PI * 2;
+      var seedR = Math.random() * 368;
+      particles.push({
+        x: cx + Math.cos(seedAngle) * seedR,
+        y: cy + Math.sin(seedAngle) * seedR,
+        vx: 0,
+        vy: 0,
+        len: 3.5 + Math.random() * 5,
+        width: 1.3 + Math.random() * 1.4,
+        wobblePhase: Math.random() * Math.PI * 2,
+        wobbleFreq: 0.6 + Math.random() * 0.8
+      });
+    }
+
+    /* Tracks how fast the target itself is moving, smoothed frame to frame.
+       Used to break the swarm's shape out of a symmetric ring while it's
+       actively traveling (a flock stretches and jitters in flight) and let
+       it settle back into the round rest formation as soon as it stops -
+       nothing to do with the load-state transition, which has its own
+       fixed target and isn't affected by this. */
+    var prevTx = cx, prevTy = cy;
+    var smoothVX = 0, smoothVY = 0;
+
     var lastMoveTime = -99999;
     window.addEventListener('pointermove', function (e) {
       cx = e.clientX;
@@ -465,8 +464,7 @@
     }, { passive: true });
     /* Touch devices don't fire pointermove while just resting a finger -
        only during an active drag - so a plain touchstart/touchmove pair
-       covers taps and drags alike, giving the field a target to reveal
-       around. */
+       covers taps and drags alike, giving the swarm a target to follow. */
     function trackTouch(e) {
       if (!e.touches || !e.touches[0]) return;
       cx = e.touches[0].clientX;
@@ -476,14 +474,32 @@
     window.addEventListener('touchstart', trackTouch, { passive: true });
     window.addEventListener('touchmove', trackTouch, { passive: true });
 
-    /* A click (or a page-transition reveal) still drives the traveling
-       glow/size pulse below via burstEnergy - purely a timing clock now,
-       since there's no swarm position left to kick outward. */
+    /* A click (or a page-transition reveal) sends every particle flying
+       outward from wherever the swarm was centered, then the standing
+       forces below pull it back together on their own - the burst decays
+       via the same damping as everything else. */
     var burstAt = -99999;
-    function burstNow() { burstAt = performance.now(); }
+    function burstNow() {
+      var origin = loaderCenter || { x: cx, y: cy };
+      burstAt = performance.now();
+      for (var b = 0; b < particles.length; b++) {
+        var bp = particles[b];
+        var bdx = bp.x - origin.x;
+        var bdy = bp.y - origin.y;
+        var bdist = Math.sqrt(bdx * bdx + bdy * bdy) || 0.001;
+        var kick = 18 + Math.random() * 9;
+        bp.vx += (bdx / bdist) * kick;
+        bp.vy += (bdy / bdist) * kick;
+      }
+    }
     document.addEventListener('click', burstNow);
     triggerBurst = burstNow;
 
+    /* The page-transition reveal doesn't want the click burst's sharp
+       outward kick - it wants the swarm to just let go of the center and
+       drift apart on its own. Fading the pull force toward zero over time
+       and leaning on the ever-present repulsion between particles to do
+       the actual separating reads as a soft release, not an explosion. */
     var releasing = false;
     var releaseStart = 0;
     var RELEASE_DURATION = 1900;
@@ -493,14 +509,34 @@
     }
     triggerGentleRelease = gentleRelease;
 
+    /* Easing the pull in on arrival too, so the swarm gathers into the
+       center smoothly instead of snapping straight to it. */
+    var convergeStart = null;
+    var CONVERGE_DURATION = 1100;
+
     var hoverBoost = 0;
+
+    var pullK = reducedMotion ? 0.03 : 0.078;
+    var swirlK = reducedMotion ? 0.006 : 0.012;
+    var repelK = 0.9;
+    var damping = 0.82;
+    /* Particle count was halved (1040 -> 520) to reduce visual density
+       against the text; spacing is scaled up by sqrt(2) so the swarm's
+       overall footprint (count x spacing^2 for a packed 2D cluster)
+       stays the same size as before, not smaller. */
+    var baseSpacing = 368;
+    var loaderSpacing = baseSpacing * 2.1;
 
     function drawGas(t) {
       var inTransition = !!loaderCenter;
 
+      /* Finish an in-progress release: fade the pull to zero, then hand
+         back to normal cursor-follow. */
+      var releaseMult = 1;
       var releaseT = 0;
       if (releasing) {
         releaseT = Math.min(1, (t - releaseStart) / RELEASE_DURATION);
+        releaseMult = 1 - releaseT;
         if (releaseT >= 1) {
           releasing = false;
           loaderCenter = null;
@@ -509,19 +545,30 @@
         }
       }
 
+      /* Ease the pull in on arrival so the swarm gathers smoothly instead
+         of snapping straight to the center. */
+      var convergeMult = 1;
+      if (inTransition && !releasing) {
+        if (convergeStart === null) convergeStart = t;
+        convergeMult = Math.min(1, (t - convergeStart) / CONVERGE_DURATION);
+        convergeMult = 0.22 + convergeMult * 0.78;
+      } else if (!inTransition) {
+        convergeStart = null;
+      }
+
       /* Ambient idle pulse: a single shared phase drives both the blur and
-         the reveal-radius breathing below, so the visible zone around the
-         cursor expands as it blurs and contracts back as it sharpens,
-         instead of blur being the only thing pulsing. Scoped to the idle
-         (non-transition) state only - it fades to zero the moment the
-         cursor starts moving again. */
+         the spacing breathing below, so the swarm visibly expands as it
+         blurs and contracts back as it sharpens, instead of blur being the
+         only thing pulsing. Scoped to the idle (non-transition) state only -
+         it fades to zero the moment the cursor starts moving again. */
       var idleFor = t - lastMoveTime;
       var idleT = inTransition ? 0 : Math.max(0, Math.min(1, (idleFor - 600) / 2600));
       var pulseSin = Math.sin(t * 0.0014);
-      var ambientRadiusPulse = 1 + idleT * pulseSin * 0.3;
+      var ambientSpacingPulse = 1 + idleT * pulseSin * 0.3;
 
       if (releasing) {
-        /* Blur ramps up hard as the load-state reveal dissolves away. */
+        /* Blur ramps up hard as the swarm disperses, so it visibly
+           dissolves away rather than just scattering while staying sharp. */
         var disperseBlur = 0.9 + Math.pow(releaseT, 1.4) * 13;
         canvas.style.filter = 'blur(' + disperseBlur.toFixed(1) + 'px)';
       } else if (inTransition) {
@@ -545,39 +592,79 @@
          shared on/off flash: it reaches particles closest to the cursor
          first and arrives at farther ones later, timed by distance over a
          fixed propagation speed. Each particle computes its own arrival
-         time from `dist` inside the loop below. */
+         time from `dist` inside the loop below (BURST_WAVE_SPEED/
+         BURST_PULSE_WIDTH), so this is just the shared click clock. */
       var BURST_WAVE_SPEED = 1.0;
       var BURST_PULSE_WIDTH = 520;
+      var BURST_FORCE = 20;
       var BURST_ATTACK = 0.22;
       var sinceBurst = t - burstAt;
 
+      /* A traveling ripple, not a shared on/off pulse: phase depends on each
+         particle's own distance from the target, so the wave visibly moves
+         outward through the swarm like a shockwave. During a page-transition
+         load it runs wider and stronger, reading as deliberate energy waves
+         rather than the subtler ambient ripple. */
       var target = loaderCenter || { x: cx, y: cy };
       var tx = target.x;
       var ty = target.y;
       var waveAmp = inTransition ? 1.5 : 0.3;
       var waveSpatialFreq = inTransition ? 0.022 : 0.045;
       var waveTimeFreq = inTransition ? 0.0046 : 0.0032;
-      /* During the load state the reveal radius itself breathes - shrinks
-         in tight, then expands back out - on top of a wider base radius,
-         rather than staying at one fixed width. */
-      var loaderRadiusPulse = inTransition ? 0.4 + (0.5 + Math.sin(t * 0.0016) * 0.5) * 0.9 : 1;
-      var radiusMult = (inTransition ? loaderRadiusPulse : ambientRadiusPulse) * (1 + hoverBoost * 0.7);
+      /* During the load state the comfortable spacing itself breathes -
+         shrinks in tight, then expands back out - on top of the wider
+         base distance, rather than staying at one fixed width. */
+      var loaderSpacingPulse = inTransition ? 0.4 + (0.5 + Math.sin(t * 0.0016) * 0.5) * 0.9 : 1;
+      var spacing = (inTransition ? loaderSpacing * loaderSpacingPulse : baseSpacing * ambientSpacingPulse) * (1 + hoverBoost * 0.7);
+      var spacing2 = spacing * spacing;
+      var pullMult = convergeMult * releaseMult;
+
+      /* Break the swarm out of a symmetric ring while the target is
+         actually traveling - a flock stretches and flutters in flight, not
+         while it's holding position. Speed fades this back out on its own,
+         so stopping lets the shared attraction/repulsion/swirl below settle
+         it back into the round rest formation with no separate "return"
+         logic needed. Has no effect during the load-state transition, since
+         its target doesn't move. */
+      var rawVX = tx - prevTx;
+      var rawVY = ty - prevTy;
+      prevTx = tx;
+      prevTy = ty;
+      if (inTransition) {
+        smoothVX = 0;
+        smoothVY = 0;
+      } else {
+        smoothVX += (rawVX - smoothVX) * 0.18;
+        smoothVY += (rawVY - smoothVY) * 0.18;
+      }
+      var moveSpeed = Math.hypot(smoothVX, smoothVY);
+      var speedFactor = Math.min(1, moveSpeed / 22);
+      var moveDirX = moveSpeed > 0.01 ? smoothVX / moveSpeed : 0;
+      var moveDirY = moveSpeed > 0.01 ? smoothVY / moveSpeed : 0;
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.globalCompositeOperation = 'lighter';
       ctx.lineCap = 'round';
 
+      /* Neighbor repulsion is the expensive part - checking every particle
+         against every other one is O(n^2), which gets heavy fast as the
+         count grows. Bucket particles into a grid sized to the current
+         spacing so each particle only has to check the ~9 cells around it
+         instead of the whole swarm. Rebuilt every frame since particles
+         (and spacing itself, via the pulse) keep moving. */
+      var cellSize = Math.max(spacing, 40);
+      var grid = Object.create(null);
+      for (var gi = 0; gi < particles.length; gi++) {
+        var gp = particles[gi];
+        var gkey = (Math.floor(gp.x / cellSize)) + '_' + (Math.floor(gp.y / cellSize));
+        (grid[gkey] || (grid[gkey] = [])).push(gi);
+      }
+
       for (var i = 0; i < particles.length; i++) {
         var p = particles[i];
-        /* A small, always-on drift around the fixed home position, own
-           phase per particle, so the field still reads as alive even where
-           nothing is near the cursor to reveal it. */
-        var px = p.homeX + Math.sin(t * 0.0006 * p.wobbleFreq + p.wobblePhase) * 6;
-        var py = p.homeY + Math.cos(t * 0.00052 * p.wobbleFreq + p.wobblePhase * 1.3) * 6;
-
-        var dx = tx - px;
-        var dy = ty - py;
+        var dx = tx - p.x;
+        var dy = ty - p.y;
         var dist = Math.sqrt(dx * dx + dy * dy) || 0.001;
         var wave = Math.sin(t * waveTimeFreq - dist * waveSpatialFreq);
 
@@ -586,8 +673,11 @@
            BURST_WAVE_SPEED) actually reaches its distance, then an eased
            rise as the leading edge of the wave hits it followed by an
            eased fall as it passes on by - a shockwave crest, not a
-           symmetric blip. Sine easing on both halves so the crest breathes
-           in and out smoothly instead of snapping. */
+           symmetric blip - so it reads as a lit ridge sweeping outward
+           through the swarm rather than a uniform flash. Sine easing on
+           both halves (not a linear ramp) so the crest breathes in and
+           out smoothly instead of snapping. Zero again once it's moved
+           on. */
         var burstArrival = dist / BURST_WAVE_SPEED;
         var burstEnergy = 0;
         var burstLocalT = sinceBurst - burstArrival;
@@ -598,11 +688,92 @@
             : Math.cos(((burstW - BURST_ATTACK) / (1 - BURST_ATTACK)) * Math.PI * 0.5);
         }
 
-        var angle = Math.atan2(ty - py, tx - px) + Math.PI / 2;
-        var hueAngle = Math.atan2(py - ty, px - tx);
+        var ax = (dx / dist) * pullK * dist * pullMult;
+        var ay = (dy / dist) * pullK * dist * pullMult;
+        ax += (-dy / dist) * swirlK * Math.min(dist, 340) * pullMult;
+        ay += (dx / dist) * swirlK * Math.min(dist, 340) * pullMult;
+
+        if (speedFactor > 0.001) {
+          /* Particles trailing behind the direction of travel get less pull
+             (they drag, like the back of a flock), particles leading get to
+             keep theirs - an asymmetric, elongated shape instead of a ring. */
+          var alongMove = (p.x - tx) * moveDirX + (p.y - ty) * moveDirY;
+          var trailBias = Math.max(0, -alongMove) / (dist + 40);
+          var pullTrail = 1 - Math.min(0.72, trailBias * speedFactor * 2.1);
+          ax *= pullTrail;
+          ay *= pullTrail;
+
+          /* Independent per-particle flutter, each on its own phase, scaled
+             by how fast the swarm is traveling - the "insects/birds" quality
+             that keeps the whole group from moving as one rigid piece. */
+          var flutter = Math.sin(t * 0.006 * p.wobbleFreq + p.wobblePhase) * speedFactor * 1.7;
+          ax += (-dy / dist) * flutter;
+          ay += (dx / dist) * flutter;
+        }
+
+        ax += -(dx / dist) * wave * waveAmp;
+        ay += -(dy / dist) * wave * waveAmp;
+
+        /* Amoeba-style deformation for the idle pulse: several angular
+           lobes at incommensurate frequencies, summed and drifting slowly
+           over time, so different parts of the swarm's edge bulge out or
+           draw in at different moments instead of the whole shape
+           breathing as one uniform circle. Still fully coordinated, since
+           it's a smooth continuous function of angle (neighboring
+           particles always get near-identical values), but the combined
+           frequencies never resettle into a repeating, symmetric pattern -
+           reads as organic and unpredictable rather than mechanical. */
+        if (!inTransition) {
+          var pAngle = Math.atan2(p.y - ty, p.x - tx);
+          var blobLobe = Math.sin(pAngle * 2 + t * 0.00065) * 0.5
+            + Math.sin(pAngle * 3 - t * 0.00095 + 1.7) * 0.32
+            + Math.sin(pAngle * 5 + t * 0.00042 + 4.2) * 0.22;
+          var blobPush = idleT * blobLobe * dist * 0.026;
+          ax += -(dx / dist) * blobPush;
+          ay += -(dy / dist) * blobPush;
+        }
+
+        /* The traveling burst ring gives an actual outward kick as it
+           passes through, on top of the visual glow/size boost below - so
+           the wave reads as a physical pulse propagating through the
+           swarm, not just a brightness effect. */
+        ax += -(dx / dist) * burstEnergy * BURST_FORCE;
+        ay += -(dy / dist) * burstEnergy * BURST_FORCE;
+
+        var cgx = Math.floor(p.x / cellSize);
+        var cgy = Math.floor(p.y / cellSize);
+        for (var ngx = cgx - 1; ngx <= cgx + 1; ngx++) {
+          for (var ngy = cgy - 1; ngy <= cgy + 1; ngy++) {
+            var cell = grid[ngx + '_' + ngy];
+            if (!cell) continue;
+            for (var ci = 0; ci < cell.length; ci++) {
+              var j = cell[ci];
+              if (j === i) continue;
+              var q = particles[j];
+              var ddx = p.x - q.x;
+              var ddy = p.y - q.y;
+              var d2 = ddx * ddx + ddy * ddy;
+              if (d2 < spacing2 && d2 > 0.0001) {
+                var d = Math.sqrt(d2);
+                var push = (spacing - d) / spacing * repelK;
+                ax += (ddx / d) * push;
+                ay += (ddy / d) * push;
+              }
+            }
+          }
+        }
+
+        p.vx = (p.vx + ax * 0.06) * damping;
+        p.vy = (p.vy + ay * 0.06) * damping;
+        p.x += p.vx;
+        p.y += p.vy;
+
+        var speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+        var angle = speed > 0.02 ? Math.atan2(p.vy, p.vx) : Math.atan2(ty - p.y, tx - p.x) + Math.PI / 2;
+        var hueAngle = Math.atan2(p.y - ty, p.x - tx);
         var hue = HUE_START + ((hueAngle + Math.PI) / (Math.PI * 2)) * HUE_SPAN;
         var glow = 0.5 + wave * 0.25 + burstEnergy * 1.6;
-        var alpha = (0.3 + glow * 0.2) * (reducedMotion ? 0.75 : 1);
+        var alpha = (0.3 + Math.min(0.45, speed * 0.9) + glow * 0.2) * (reducedMotion ? 0.75 : 1);
         /* A pale, high-lightness stroke glows against a dark background under
            the "screen" blend mode, but that same pale color has almost no
            contrast against white regardless of blend mode - multiply doesn't
@@ -617,25 +788,27 @@
         lightness += burstEnergy * (light ? 32 : 26);
         if (light) alpha = Math.min(1, alpha * 1.6);
 
-        /* Full size only lives in a middle "sweet spot" band around the
-           cursor - particles shrink smoothly both closer in and farther
-           out, since dist changes constantly as the cursor moves. At the
-           extremes they don't just shrink to a fixed tiny size, they keep
-           pulsing between "extremely small" and "nearly invisible"
-           continuously (own phase per particle, so it shimmers rather than
-           blinking in unison) - always running, not just while idle, since
-           this is about position relative to the cursor rather than the
-           ambient idle breathing. radiusMult breathes the whole band
-           in/out (idle pulse, hover expansion, load-state pulse). */
-        var nearT = Math.max(0, 1 - dist / (230 * radiusMult));
-        var farT = Math.min(1, Math.max(0, (dist - 260 * radiusMult) / (320 * radiusMult)));
+        /* Full size only lives in a middle "sweet spot" band - particles
+           shrink smoothly both as they close in on the cursor/target and as
+           they drift far out past it, since dist changes constantly as the
+           swarm moves either direction. Near/far radii widened well past
+           the old 130/340 thresholds so the extreme (shrinking/pulsing)
+           zones cover much more of the swarm, leaving only a narrower
+           full-size band in between. At the extremes they don't just
+           shrink to a fixed tiny size, they keep pulsing between "extremely
+           small" and "nearly invisible" continuously (own phase per
+           particle, so it shimmers rather than blinking in unison) - always
+           running, not just while idle, since this is about position
+           relative to the cursor rather than the ambient idle breathing. */
+        var nearT = Math.max(0, 1 - dist / 230);
+        var farT = Math.min(1, Math.max(0, (dist - 260) / 320));
         var extremeT = Math.max(nearT, farT);
         var extremePulse = 0.5 + Math.sin(t * 0.0055 + p.wobblePhase) * 0.5;
         var extremeSize = 0.02 + extremePulse * 0.06;
         var sizeMult = 1 - extremeT * (1 - extremeSize);
 
         ctx.save();
-        ctx.translate(px, py);
+        ctx.translate(p.x, p.y);
         ctx.rotate(angle);
         ctx.strokeStyle = 'hsla(' + hue + ', 82%, ' + lightness + '%, ' + alpha + ')';
         ctx.lineWidth = p.width * (1 + burstEnergy * 0.7) * sizeMult;
