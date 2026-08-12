@@ -422,21 +422,21 @@
     function refreshGasColors() {} /* kept as a no-op so theme toggle callers stay valid */
     window.__refreshGasColors = refreshGasColors;
 
-    /* Every particle sits at a fixed home position scattered across the
-       whole page - covering the full viewport is what kills the old
-       catch-up lag, since a particle is already sitting wherever the
-       cursor moves to, nothing has to travel there. But particles near
-       the cursor still get the full old swarm physics (pull, swirl,
-       mutual repulsion, flock-flutter, amoeba deformation, burst kick) as
-       a small offset from that home position - "active" only while the
-       target is nearby, easing back to rest at home the moment it isn't.
-       So it's not one cluster chasing the cursor across the page anymore,
-       it's whichever particles already live near wherever the cursor
-       currently is, briefly coming alive with the same fluid, coordinated
-       movement the old single cluster had. Density scales with viewport
-       area; regenerated (debounced) on resize to keep covering it. */
-    var DENSITY = reducedMotion ? 0.00024 : 0.00048;
-    var MAX_COUNT = reducedMotion ? 900 : 2400;
+    /* A starfield, not a swarm: every particle sits at a fixed home
+       position scattered sparsely across the whole page and never moves -
+       nothing is ever pulled toward or pushed away from the cursor.
+       Proximity to the cursor only changes a particle's SIZE, easing it
+       between three states: tiny-and-flickering-toward-invisible when far
+       away, briefly restored to its full original size in a "sweet spot"
+       band around the cursor, and tiny-but-never-quite-invisible right at
+       the cursor itself. Each particle's own flicker is a random walk
+       (a new random target size picked at a random interval, eased toward
+       smoothly) rather than a synchronized sine wave, so nothing pulses in
+       unison or on a fixed beat - it reads as scattered, independent
+       twinkling. Density scales with viewport area; regenerated
+       (debounced) on resize to keep covering it. */
+    var DENSITY = reducedMotion ? 0.00006 : 0.00012;
+    var MAX_COUNT = reducedMotion ? 350 : 700;
     var particles = [];
     function seedParticles() {
       var count = Math.min(MAX_COUNT, Math.round(window.innerWidth * window.innerHeight * DENSITY));
@@ -445,12 +445,12 @@
         particles.push({
           homeX: Math.random() * window.innerWidth,
           homeY: Math.random() * window.innerHeight,
-          ox: 0, oy: 0, ovx: 0, ovy: 0,
-          wasActive: false,
           len: 3.5 + Math.random() * 5,
           width: 1.3 + Math.random() * 1.4,
-          wobblePhase: Math.random() * Math.PI * 2,
-          wobbleFreq: 0.6 + Math.random() * 0.8
+          pulseCurrent: Math.random(),
+          pulseTarget: Math.random(),
+          pulseNextChange: 0,
+          pulseEase: 0.008 + Math.random() * 0.022
         });
       }
     }
@@ -471,7 +471,7 @@
     }, { passive: true });
     /* Touch devices don't fire pointermove while just resting a finger -
        only during an active drag - so a plain touchstart/touchmove pair
-       covers taps and drags alike, giving the field a target to wake up
+       covers taps and drags alike, giving the field a target to reveal
        around. */
     function trackTouch(e) {
       if (!e.touches || !e.touches[0]) return;
@@ -482,18 +482,14 @@
     window.addEventListener('touchstart', trackTouch, { passive: true });
     window.addEventListener('touchmove', trackTouch, { passive: true });
 
-    /* A click (or a page-transition reveal) gives nearby active particles
-       an actual outward kick (BURST_FORCE below), on top of the traveling
-       glow/size pulse - both driven by the same burstAt clock. */
+    /* A click (or a page-transition reveal) still drives the traveling
+       glow/size pulse below via burstEnergy - purely a timing clock, no
+       particle ever moves for it. */
     var burstAt = -99999;
     function burstNow() { burstAt = performance.now(); }
     document.addEventListener('click', burstNow);
     triggerBurst = burstNow;
 
-    /* The page-transition reveal wants a soft release, not the click
-       burst's sharp kick - fading pullMult to zero and leaning on the
-       restoring spring (below) to ease particles back to their home
-       positions reads as a gentle dissolve rather than an explosion. */
     var releasing = false;
     var releaseStart = 0;
     var RELEASE_DURATION = 1900;
@@ -503,46 +499,14 @@
     }
     triggerGentleRelease = gentleRelease;
 
-    /* Easing the pull in on arrival too, so particles near the load-state
-       center gather in smoothly instead of snapping straight to it. */
-    var convergeStart = null;
-    var CONVERGE_DURATION = 1100;
-
     var hoverBoost = 0;
-
-    var pullK = reducedMotion ? 0.03 : 0.078;
-    var swirlK = reducedMotion ? 0.006 : 0.012;
-    var repelK = 0.9;
-    var damping = 0.82;
-    var baseSpacing = 368;
-    var loaderSpacing = baseSpacing * 2.1;
-    var BURST_FORCE = 20;
-    /* How far from the target a particle needs to be (from its own home
-       position) before the old swarm physics kick in for it at all - well
-       past the visible sweet-spot/extreme radii below, so forces are
-       already settled by the time a particle becomes visually
-       significant. Particles beyond this just ease back toward home via
-       the restoring spring instead of running the (much more expensive)
-       pull/swirl/repulsion simulation - since only a small fraction of the
-       full-page field is ever within this radius of the cursor at once,
-       this is what keeps a couple thousand particles affordable. */
-    var ACTIVE_RADIUS = 900;
-
-    /* Tracks how fast the target itself is moving, smoothed frame to
-       frame - the same flock-flutter/trailing-drag asymmetry the old
-       single cluster had while traveling, still driving active particles
-       here, just no longer driving a whole swarm across the page. */
-    var prevTx = cx, prevTy = cy;
-    var smoothVX = 0, smoothVY = 0;
 
     function drawGas(t) {
       var inTransition = !!loaderCenter;
 
-      var releaseMult = 1;
       var releaseT = 0;
       if (releasing) {
         releaseT = Math.min(1, (t - releaseStart) / RELEASE_DURATION);
-        releaseMult = 1 - releaseT;
         if (releaseT >= 1) {
           releasing = false;
           loaderCenter = null;
@@ -551,25 +515,9 @@
         }
       }
 
-      var convergeMult = 1;
-      if (inTransition && !releasing) {
-        if (convergeStart === null) convergeStart = t;
-        convergeMult = Math.min(1, (t - convergeStart) / CONVERGE_DURATION);
-        convergeMult = 0.22 + convergeMult * 0.78;
-      } else if (!inTransition) {
-        convergeStart = null;
-      }
-
-      /* Ambient idle pulse: a single shared phase drives both the blur and
-         the reveal-radius/spacing breathing below, so the visible zone
-         around the cursor expands as it blurs and contracts back as it
-         sharpens, instead of blur being the only thing pulsing. Scoped to
-         the idle (non-transition) state only - it fades to zero the
-         moment the cursor starts moving again. */
       var idleFor = t - lastMoveTime;
       var idleT = inTransition ? 0 : Math.max(0, Math.min(1, (idleFor - 600) / 2600));
       var pulseSin = Math.sin(t * 0.0014);
-      var ambientRadiusPulse = 1 + idleT * pulseSin * 0.3;
 
       if (releasing) {
         /* Blur ramps up hard as the load-state reveal dissolves away. */
@@ -595,8 +543,7 @@
       /* A click's energy pulse is a genuine traveling wavefront, not a
          shared on/off flash: it reaches particles closest to the cursor
          first and arrives at farther ones later, timed by distance over a
-         fixed propagation speed. Each particle computes its own arrival
-         time from `dist` inside the loop below. */
+         fixed propagation speed. */
       var BURST_WAVE_SPEED = 1.0;
       var BURST_PULSE_WIDTH = 520;
       var BURST_ATTACK = 0.22;
@@ -608,106 +555,30 @@
       var waveAmp = inTransition ? 1.5 : 0.3;
       var waveSpatialFreq = inTransition ? 0.022 : 0.045;
       var waveTimeFreq = inTransition ? 0.0046 : 0.0032;
-      /* During the load state the comfortable spacing/reveal radius itself
-         breathes - shrinks in tight, then expands back out - on top of a
-         wider base, rather than staying at one fixed width. */
+      /* The reveal radius breathes a little with hover and the load-state
+         pulse, widening the sweet-spot band rather than moving anything. */
       var loaderRadiusPulse = inTransition ? 0.4 + (0.5 + Math.sin(t * 0.0016) * 0.5) * 0.9 : 1;
-      var radiusMult = (inTransition ? loaderRadiusPulse : ambientRadiusPulse) * (1 + hoverBoost * 0.7);
-      var pullMult = convergeMult * releaseMult;
-      var spacing = (inTransition ? loaderSpacing : baseSpacing) * radiusMult;
-      var spacing2 = spacing * spacing;
-
-      /* Break the local cluster out of a symmetric ring while the target
-         is actually traveling - a flock stretches and flutters in flight,
-         not while it's holding position. Has no effect during the load-
-         state transition, since its target doesn't move. */
-      var rawVX = tx - prevTx;
-      var rawVY = ty - prevTy;
-      prevTx = tx;
-      prevTy = ty;
-      if (inTransition) {
-        smoothVX = 0;
-        smoothVY = 0;
-      } else {
-        smoothVX += (rawVX - smoothVX) * 0.18;
-        smoothVY += (rawVY - smoothVY) * 0.18;
-      }
-      var moveSpeed = Math.hypot(smoothVX, smoothVY);
-      var speedFactor = Math.min(1, moveSpeed / 22);
-      var moveDirX = moveSpeed > 0.01 ? smoothVX / moveSpeed : 0;
-      var moveDirY = moveSpeed > 0.01 ? smoothVY / moveSpeed : 0;
+      var radiusMult = (inTransition ? loaderRadiusPulse : 1) * (1 + hoverBoost * 0.5);
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.globalCompositeOperation = 'lighter';
       ctx.lineCap = 'round';
 
-      /* Pass 1: settle this frame's render position (home + offset + idle
-         wobble) for every particle, and flag which ones are close enough
-         to the target to be "active" - only those go into the neighbor-
-         repulsion grid, keeping it cheap regardless of how many thousand
-         particles are covering the page. */
-      var cellSize = Math.max(spacing, 40);
-      var grid = Object.create(null);
-      for (var gi = 0; gi < particles.length; gi++) {
-        var gp = particles[gi];
-        var gwx = Math.sin(t * 0.0006 * gp.wobbleFreq + gp.wobblePhase) * 6;
-        var gwy = Math.cos(t * 0.00052 * gp.wobbleFreq + gp.wobblePhase * 1.3) * 6;
-        var gpx = gp.homeX + gp.ox + gwx;
-        var gpy = gp.homeY + gp.oy + gwy;
-        gp._px = gpx;
-        gp._py = gpy;
-        var gdx = tx - gpx, gdy = ty - gpy;
-        var gdist = Math.sqrt(gdx * gdx + gdy * gdy) || 0.001;
-        gp._dist = gdist;
-        gp._active = gdist < ACTIVE_RADIUS;
-        if (gp._active) {
-          var gkey = Math.floor(gpx / cellSize) + '_' + Math.floor(gpy / cellSize);
-          (grid[gkey] || (grid[gkey] = [])).push(gi);
-        }
-      }
-
-      /* Pass 2: active particles run the full old force simulation
-         (pull/swirl/flutter/amoeba/burst/repulsion) as an offset from
-         home; inactive ones just ease that offset back toward zero, so
-         they're already at rest by the time the cursor gets near them
-         again. */
       for (var i = 0; i < particles.length; i++) {
         var p = particles[i];
-        var px = p._px, py = p._py;
-        var dist = p._dist;
+        var px = p.homeX;
+        var py = p.homeY;
+
         var dx = tx - px, dy = ty - py;
-
-        /* Newly-activated particles spawn right at the cursor (with a
-           small random jitter and outward kick) and get pushed the rest
-           of the way out by the standing repulsion from other nearby
-           active particles, rather than being dragged in from wherever
-           they were resting at their home position. That's what makes
-           particles read as emanating from the cursor instead of being
-           magnetically pulled in toward it from afar. */
-        if (p._active && !p.wasActive) {
-          var spawnAngle = Math.random() * Math.PI * 2;
-          var spawnR = Math.random() * 14;
-          p.ox = (tx - p.homeX) + Math.cos(spawnAngle) * spawnR;
-          p.oy = (ty - p.homeY) + Math.sin(spawnAngle) * spawnR;
-          p.ovx = Math.cos(spawnAngle) * (1.5 + Math.random() * 2.5);
-          p.ovy = Math.sin(spawnAngle) * (1.5 + Math.random() * 2.5);
-          px = tx + Math.cos(spawnAngle) * spawnR;
-          py = ty + Math.sin(spawnAngle) * spawnR;
-          dx = tx - px;
-          dy = ty - py;
-          dist = Math.sqrt(dx * dx + dy * dy) || 0.001;
-        }
-        p.wasActive = p._active;
-
+        var dist = Math.sqrt(dx * dx + dy * dy) || 0.001;
         var wave = Math.sin(t * waveTimeFreq - dist * waveSpatialFreq);
 
         /* This particle's own moment in the traveling burst wave: zero
            until the ring (expanding outward from the cursor at
            BURST_WAVE_SPEED) actually reaches its distance, then an eased
            rise as the leading edge of the wave hits it followed by an
-           eased fall as it passes on by - a shockwave crest, not a
-           symmetric blip. */
+           eased fall as it passes on by. */
         var burstArrival = dist / BURST_WAVE_SPEED;
         var burstEnergy = 0;
         var burstLocalT = sinceBurst - burstArrival;
@@ -718,107 +589,11 @@
             : Math.cos(((burstW - BURST_ATTACK) / (1 - BURST_ATTACK)) * Math.PI * 0.5);
         }
 
-        var ax = 0, ay = 0;
-
-        if (p._active) {
-          ax += (dx / dist) * pullK * dist * pullMult;
-          ay += (dy / dist) * pullK * dist * pullMult;
-          ax += (-dy / dist) * swirlK * Math.min(dist, 340) * pullMult;
-          ay += (dx / dist) * swirlK * Math.min(dist, 340) * pullMult;
-
-          if (speedFactor > 0.001) {
-            /* Particles trailing behind the direction of travel get less
-               pull (they drag, like the back of a flock), particles
-               leading get to keep theirs - an asymmetric, elongated shape
-               instead of a ring. */
-            var alongMove = (px - tx) * moveDirX + (py - ty) * moveDirY;
-            var trailBias = Math.max(0, -alongMove) / (dist + 40);
-            var pullTrail = 1 - Math.min(0.72, trailBias * speedFactor * 2.1);
-            ax *= pullTrail;
-            ay *= pullTrail;
-
-            /* Independent per-particle flutter, each on its own phase,
-               scaled by how fast the target is traveling - the "insects/
-               birds" quality that keeps the local cluster from moving as
-               one rigid piece. */
-            var flutter = Math.sin(t * 0.006 * p.wobbleFreq + p.wobblePhase) * speedFactor * 1.7;
-            ax += (-dy / dist) * flutter;
-            ay += (dx / dist) * flutter;
-          }
-
-          ax += -(dx / dist) * wave * waveAmp;
-          ay += -(dy / dist) * wave * waveAmp;
-
-          /* Amoeba-style deformation: several angular lobes at
-             incommensurate frequencies, summed and drifting slowly over
-             time, so different parts of the local cluster's edge bulge
-             out or draw in at different moments instead of the whole
-             shape breathing as one uniform circle. */
-          if (!inTransition) {
-            var pAngle = Math.atan2(py - ty, px - tx);
-            var blobLobe = Math.sin(pAngle * 2 + t * 0.00065) * 0.5
-              + Math.sin(pAngle * 3 - t * 0.00095 + 1.7) * 0.32
-              + Math.sin(pAngle * 5 + t * 0.00042 + 4.2) * 0.22;
-            var blobPush = idleT * blobLobe * dist * 0.026;
-            ax += -(dx / dist) * blobPush;
-            ay += -(dy / dist) * blobPush;
-          }
-
-          /* The traveling burst ring gives an actual outward kick as it
-             passes through, on top of the visual glow/size boost below -
-             so the wave reads as a physical pulse propagating through the
-             cluster, not just a brightness effect. */
-          ax += -(dx / dist) * burstEnergy * BURST_FORCE;
-          ay += -(dy / dist) * burstEnergy * BURST_FORCE;
-
-          /* Neighbor repulsion, checked only against other active
-             particles via the grid built in pass 1. */
-          var cgx = Math.floor(px / cellSize);
-          var cgy = Math.floor(py / cellSize);
-          for (var ngx = cgx - 1; ngx <= cgx + 1; ngx++) {
-            for (var ngy = cgy - 1; ngy <= cgy + 1; ngy++) {
-              var cell = grid[ngx + '_' + ngy];
-              if (!cell) continue;
-              for (var ci = 0; ci < cell.length; ci++) {
-                var j = cell[ci];
-                if (j === i) continue;
-                var q = particles[j];
-                var ddx = px - q._px;
-                var ddy = py - q._py;
-                var d2 = ddx * ddx + ddy * ddy;
-                if (d2 < spacing2 && d2 > 0.0001) {
-                  var d = Math.sqrt(d2);
-                  var push = (spacing - d) / spacing * repelK;
-                  ax += (ddx / d) * push;
-                  ay += (ddy / d) * push;
-                }
-              }
-            }
-          }
-        }
-
-        /* Restoring spring back toward home - weak while active (so the
-           cursor's pull can genuinely gather the local cluster together)
-           and strong once inactive (so a particle the cursor has moved
-           away from settles back to rest quickly instead of drifting). */
-        var restoreK = p._active ? 0.018 : 0.1;
-        ax += -p.ox * restoreK;
-        ay += -p.oy * restoreK;
-
-        p.ovx = (p.ovx + ax * 0.06) * damping;
-        p.ovy = (p.ovy + ay * 0.06) * damping;
-        p.ox += p.ovx;
-        p.oy += p.ovy;
-
-        var rpx = p.homeX + p.ox + Math.sin(t * 0.0006 * p.wobbleFreq + p.wobblePhase) * 6;
-        var rpy = p.homeY + p.oy + Math.cos(t * 0.00052 * p.wobbleFreq + p.wobblePhase * 1.3) * 6;
-
-        var offsetSpeed = Math.sqrt(p.ovx * p.ovx + p.ovy * p.ovy);
-        var angle = offsetSpeed > 0.02 ? Math.atan2(p.ovy, p.ovx) : Math.atan2(ty - rpy, tx - rpx) + Math.PI / 2;
-        var hueAngle = Math.atan2(rpy - ty, rpx - tx);
+        var angle = Math.atan2(ty - py, tx - px) + Math.PI / 2;
+        var hueAngle = Math.atan2(py - ty, px - tx);
         var hue = HUE_START + ((hueAngle + Math.PI) / (Math.PI * 2)) * HUE_SPAN;
         var glow = 0.5 + wave * 0.25 + burstEnergy * 1.6;
-        var alpha = (0.3 + Math.min(0.45, offsetSpeed * 0.9) + glow * 0.2) * (reducedMotion ? 0.75 : 1);
+        var alpha = (0.3 + glow * 0.2) * (reducedMotion ? 0.75 : 1);
         /* A pale, high-lightness stroke glows against a dark background under
            the "screen" blend mode, but that same pale color has almost no
            contrast against white regardless of blend mode - multiply doesn't
@@ -833,23 +608,33 @@
         lightness += burstEnergy * (light ? 32 : 26);
         if (light) alpha = Math.min(1, alpha * 1.6);
 
-        /* Full size only lives in a middle "sweet spot" band around the
-           target - particles shrink smoothly both closer in and farther
-           out. At the extremes they keep pulsing between "extremely
-           small" and "nearly invisible" continuously (own phase per
-           particle) - always running, not just while idle, since it's
-           about position relative to the target rather than ambient idle
-           breathing. radiusMult breathes the whole band in/out (idle
-           pulse, hover expansion, load-state pulse). */
-        var nearT = Math.max(0, 1 - dist / (230 * radiusMult));
-        var farT = Math.min(1, Math.max(0, (dist - 260 * radiusMult) / (320 * radiusMult)));
+        /* Three-zone size: tiny/flickering-toward-invisible far away,
+           briefly restored to full original size in the sweet-spot band
+           around the cursor, tiny-but-not-invisible right at the cursor.
+           nearT/farT locate which of the two "pole" zones (if either)
+           this particle is in; extremeT is how deep into whichever pole.
+           The flicker itself is each particle's own random walk
+           (pulseCurrent easing toward an occasionally-re-randomized
+           pulseTarget), not a synchronized wave, so it never pulses in
+           unison or on a fixed beat. */
+        var nearT = Math.max(0, 1 - dist / (90 * radiusMult));
+        var farT = Math.min(1, Math.max(0, (dist - 130 * radiusMult) / (260 * radiusMult)));
         var extremeT = Math.max(nearT, farT);
-        var extremePulse = 0.5 + Math.sin(t * 0.0055 + p.wobblePhase) * 0.5;
-        var extremeSize = 0.02 + extremePulse * 0.06;
-        var sizeMult = 1 - extremeT * (1 - extremeSize);
+        var atNearPole = nearT >= farT;
+
+        if (t > p.pulseNextChange) {
+          p.pulseTarget = Math.random();
+          p.pulseNextChange = t + 400 + Math.random() * 1400;
+        }
+        p.pulseCurrent += (p.pulseTarget - p.pulseCurrent) * p.pulseEase;
+
+        var pulseFloor = atNearPole ? 0.02 : 0.005;
+        var pulseCeil = atNearPole ? 0.12 : 0.02;
+        var pulsedExtremeSize = pulseFloor + p.pulseCurrent * (pulseCeil - pulseFloor);
+        var sizeMult = 1 - extremeT * (1 - pulsedExtremeSize);
 
         ctx.save();
-        ctx.translate(rpx, rpy);
+        ctx.translate(px, py);
         ctx.rotate(angle);
         ctx.strokeStyle = 'hsla(' + hue + ', 82%, ' + lightness + '%, ' + alpha + ')';
         ctx.lineWidth = p.width * (1 + burstEnergy * 0.7) * sizeMult;
