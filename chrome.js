@@ -446,6 +446,7 @@
           homeX: Math.random() * window.innerWidth,
           homeY: Math.random() * window.innerHeight,
           ox: 0, oy: 0, ovx: 0, ovy: 0,
+          wasActive: false,
           len: 3.5 + Math.random() * 5,
           width: 1.3 + Math.random() * 1.4,
           wobblePhase: Math.random() * Math.PI * 2,
@@ -676,6 +677,29 @@
         var px = p._px, py = p._py;
         var dist = p._dist;
         var dx = tx - px, dy = ty - py;
+
+        /* Newly-activated particles spawn right at the cursor (with a
+           small random jitter and outward kick) and get pushed the rest
+           of the way out by the standing repulsion from other nearby
+           active particles, rather than being dragged in from wherever
+           they were resting at their home position. That's what makes
+           particles read as emanating from the cursor instead of being
+           magnetically pulled in toward it from afar. */
+        if (p._active && !p.wasActive) {
+          var spawnAngle = Math.random() * Math.PI * 2;
+          var spawnR = Math.random() * 14;
+          p.ox = (tx - p.homeX) + Math.cos(spawnAngle) * spawnR;
+          p.oy = (ty - p.homeY) + Math.sin(spawnAngle) * spawnR;
+          p.ovx = Math.cos(spawnAngle) * (1.5 + Math.random() * 2.5);
+          p.ovy = Math.sin(spawnAngle) * (1.5 + Math.random() * 2.5);
+          px = tx + Math.cos(spawnAngle) * spawnR;
+          py = ty + Math.sin(spawnAngle) * spawnR;
+          dx = tx - px;
+          dy = ty - py;
+          dist = Math.sqrt(dx * dx + dy * dy) || 0.001;
+        }
+        p.wasActive = p._active;
+
         var wave = Math.sin(t * waveTimeFreq - dist * waveSpatialFreq);
 
         /* This particle's own moment in the traveling burst wave: zero
