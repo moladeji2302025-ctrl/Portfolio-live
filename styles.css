@@ -1261,39 +1261,6 @@ a {
   transform: translateX(20px);
 }
 
-.sound-toggle {
-  width: 44px;
-  height: 44px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--white);
-  display: grid;
-  place-items: center;
-  transition: border-color 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.sound-toggle:hover {
-  border-color: var(--accent);
-}
-
-.sound-toggle svg {
-  width: 18px;
-  height: 18px;
-}
-
-.sound-toggle .icon-off {
-  display: none;
-}
-
-.sound-toggle.is-muted .icon-on {
-  display: none;
-}
-
-.sound-toggle.is-muted .icon-off {
-  display: block;
-}
-
 .header-tools {
   display: flex;
   align-items: center;
