@@ -1355,6 +1355,62 @@ a {
   -webkit-backdrop-filter: blur(18px);
 }
 
+/* Full-bleed video hero (About page): the clip fills the entire section
+   edge-to-edge as a background layer, with a bottom-weighted scrim so the
+   overlaid heading stays legible regardless of what's playing under it -
+   text color is pinned to white here rather than following the site's
+   light/dark theme tokens, since it has to read over live video either way. */
+.about-hero {
+  position: relative;
+  min-height: calc(100vh - var(--nav-height));
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+}
+
+.about-hero-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.about-hero-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.15) 45%, rgba(0, 0, 0, 0.8) 100%);
+  z-index: 1;
+}
+
+.about-hero-inner {
+  position: relative;
+  z-index: 2;
+  padding: 4rem 0;
+}
+
+.about-hero-inner .section-title {
+  color: #fff;
+}
+
+.about-hero-inner .section-kicker {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+@supports (height: 100svh) {
+  .about-hero {
+    min-height: calc(100svh - var(--nav-height));
+  }
+
+  @media (max-width: 768px) {
+    .about-hero {
+      min-height: calc(100svh - var(--nav-height-mobile));
+    }
+  }
+}
+
 .detail-media {
   display: block;
   width: 100%;
