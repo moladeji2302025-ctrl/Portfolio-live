@@ -1359,14 +1359,17 @@ a {
    edge-to-edge as a background layer, with a bottom-weighted scrim so the
    overlaid heading stays legible regardless of what's playing under it -
    text color is pinned to white here rather than following the site's
-   light/dark theme tokens, since it has to read over live video either way. */
+   light/dark theme tokens, since it has to read over live video either way.
+   No border at the seam - a second fade layer dissolves the last stretch
+   of footage into var(--bg), the same flat color the next section already
+   sits on, so the video blends into the page rather than ending in a
+   visible edge, in either theme. */
 .about-hero {
   position: relative;
   min-height: calc(100vh - var(--nav-height));
   display: flex;
   align-items: flex-end;
   overflow: hidden;
-  border-bottom: 1px solid var(--border);
 }
 
 .about-hero-video {
@@ -1385,10 +1388,24 @@ a {
   z-index: 1;
 }
 
+/* Sits above the scrim and only occupies a short band at the very bottom
+   (well clear of the overlaid text, see .about-hero-inner's padding-bottom)
+   so it reads as the footage dissolving into the page, not a fade over
+   the heading. */
+.about-hero-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: clamp(70px, 12vh, 140px);
+  background: linear-gradient(180deg, transparent 0%, var(--bg) 100%);
+  z-index: 1;
+}
+
 .about-hero-inner {
   position: relative;
   z-index: 2;
-  padding: 4rem 0;
+  padding: 4rem 0 clamp(6rem, 16vh, 9rem);
 }
 
 .about-hero-inner .section-title {
