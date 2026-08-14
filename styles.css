@@ -1407,19 +1407,23 @@ a {
   color: rgba(255, 255, 255, 0.82);
 }
 
+/* Not a solid cover - the pinned video keeps showing through here, just
+   heavily blurred and tinted with the section's own glass color, so the
+   text/cards read clearly while the footage behind them still visibly
+   moves rather than being blotted out. */
 body.pinned-hero main > .section {
   z-index: 3;
-  background: var(--bg);
-}
-
-body.pinned-hero main > .section-alt {
   background: var(--bg-alt);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
 }
 
 body.pinned-hero > .footer {
   position: relative;
   z-index: 3;
-  background: var(--bg);
+  background: var(--bg-alt);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
 }
 
 @supports (height: 100svh) {
