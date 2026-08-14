@@ -1,56 +1,58 @@
 :root {
-  /* Light is the site's default appearance regardless of OS preference -
-     dark is opt-in only, applied below via [data-theme='dark']. */
+  /* "Director's Cut": ink on paper, one hot accent, everywhere else
+     neutral. Light ("Paper") is the site's default appearance regardless
+     of OS preference - dark ("Negative Film") is opt-in only, applied
+     below via [data-theme='dark']. */
   color-scheme: light;
-  --bg: #faf9fb;
-  --bg-alt: rgba(241, 240, 244, 0.62);
-  --surface: rgba(10, 12, 20, 0.03);
-  --border: rgba(10, 12, 20, 0.09);
-  --text-primary: #12141b;
-  --text-muted: #666f80;
-  --accent: #0091b3;
-  --accent-glow: rgba(0, 145, 179, 0.14);
-  --signal: #6c4fe0;
+  --bg: #f7f6f2;
+  --bg-alt: rgba(234, 231, 224, 0.6);
+  --surface: rgba(10, 10, 10, 0.035);
+  --border: rgba(10, 10, 10, 0.14);
+  --text-primary: #0a0a0a;
+  --text-muted: #6b6862;
+  --accent: #ff3b1f;
+  --accent-glow: rgba(255, 59, 31, 0.16);
+  --signal: #c22a13;
   --danger: #d1435c;
-  --header-bg: rgba(250, 249, 251, 0.35);
-  --overlay-bg: rgba(250, 249, 251, 0.97);
-  --white: #12141b;
+  --header-bg: rgba(247, 246, 242, 0.88);
+  --overlay-bg: rgba(247, 246, 242, 0.98);
+  --white: #0a0a0a;
   --nav-height: 82px;
   --nav-height-mobile: 72px;
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #070707;
-  --bg-alt: rgba(16, 16, 16, 0.62);
-  --surface: rgba(255, 255, 255, 0.035);
-  --border: rgba(255, 255, 255, 0.09);
-  --text-primary: #f2f2f3;
-  --text-muted: #8c8f95;
-  --accent: #4fd8ff;
-  --accent-glow: rgba(79, 216, 255, 0.18);
-  --signal: #8b6bff;
-  --danger: #ff8f8f;
-  --header-bg: rgba(5, 5, 5, 0.35);
-  --overlay-bg: rgba(5, 5, 5, 0.97);
+  --bg: #050505;
+  --bg-alt: rgba(20, 20, 20, 0.6);
+  --surface: rgba(247, 246, 242, 0.045);
+  --border: rgba(247, 246, 242, 0.12);
+  --text-primary: #f7f6f2;
+  --text-muted: #9a968c;
+  --accent: #ff5a3c;
+  --accent-glow: rgba(255, 90, 60, 0.22);
+  --signal: #ff8a6b;
+  --danger: #ff6a6a;
+  --header-bg: rgba(5, 5, 5, 0.88);
+  --overlay-bg: rgba(5, 5, 5, 0.98);
   --white: #ffffff;
 }
 
 :root[data-theme='light'] {
   color-scheme: light;
-  --bg: #faf9fb;
-  --bg-alt: rgba(241, 240, 244, 0.62);
-  --surface: rgba(10, 12, 20, 0.03);
-  --border: rgba(10, 12, 20, 0.09);
-  --text-primary: #12141b;
-  --text-muted: #666f80;
-  --accent: #0091b3;
-  --accent-glow: rgba(0, 145, 179, 0.14);
-  --signal: #6c4fe0;
+  --bg: #f7f6f2;
+  --bg-alt: rgba(234, 231, 224, 0.6);
+  --surface: rgba(10, 10, 10, 0.035);
+  --border: rgba(10, 10, 10, 0.14);
+  --text-primary: #0a0a0a;
+  --text-muted: #6b6862;
+  --accent: #ff3b1f;
+  --accent-glow: rgba(255, 59, 31, 0.16);
+  --signal: #c22a13;
   --danger: #d1435c;
-  --header-bg: rgba(250, 249, 251, 0.35);
-  --overlay-bg: rgba(250, 249, 251, 0.97);
-  --white: #12141b;
+  --header-bg: rgba(247, 246, 242, 0.88);
+  --overlay-bg: rgba(247, 246, 242, 0.98);
+  --white: #0a0a0a;
 }
 
 body {
@@ -119,9 +121,9 @@ a {
 .section-title {
   margin: 0.25rem 0 0;
   font-family: 'Surgena', sans-serif;
-  font-size: clamp(2.8rem, 8vw, 6.4rem);
-  letter-spacing: 0.03em;
-  line-height: 0.95;
+  font-size: clamp(3rem, 9vw, 7.6rem);
+  letter-spacing: -0.005em;
+  line-height: 0.92;
   text-transform: lowercase;
 }
 
@@ -147,8 +149,8 @@ a {
   top: 0;
   z-index: 30;
   background: var(--header-bg);
-  backdrop-filter: blur(16px) saturate(140%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   border-bottom: 1px solid var(--border);
   transition: background 0.5s ease, border-color 0.5s ease;
 }
@@ -161,21 +163,33 @@ a {
   gap: 1rem;
 }
 
+/* Slate-mark logo: a plain monospace frame number rather than a rounded
+   "app icon" wordmark - reads like a shot slate label, not a SaaS brand. */
 .logo {
-  font-family: 'Michroma', sans-serif;
-  font-size: 2rem;
-  letter-spacing: 0.08em;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
   position: relative;
   display: inline-flex;
-  align-items: center;
+  align-items: baseline;
+  gap: 0.35rem;
+  color: var(--text-primary);
 }
 
 .logo::after {
-  content: '';
-  width: 1.25rem;
-  height: 0.16rem;
-  background: var(--accent);
-  margin-left: 0.4rem;
+  content: 'MOFEOLUWA OLADEJI';
+  font-size: 0.6rem;
+  letter-spacing: 0.24em;
+  color: var(--text-muted);
+  font-weight: 500;
+  display: none;
+}
+
+@media (min-width: 700px) {
+  .logo::after {
+    display: inline;
+  }
 }
 
 .nav-links {
@@ -185,7 +199,8 @@ a {
 
 .nav-link {
   position: relative;
-  font-size: 0.75rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -215,26 +230,31 @@ a {
   transform: scaleX(1);
 }
 
+/* Buttons: sharp corners, no fill at rest - a slate/stamp reads as
+   deliberate and printed, not a rounded "app" pill. */
 .nav-cta,
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 999px;
-  border: 1px solid var(--accent);
+  border-radius: 0;
+  border: 1px solid var(--text-primary);
   padding: 0.75rem 1.5rem;
-  font-size: 0.75rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   font-weight: 600;
-  transition: all 0.3s ease;
+  color: var(--text-primary);
+  transition: all 0.25s ease;
 }
 
 .nav-cta:hover,
 .btn-primary {
   background: var(--accent);
-  color: var(--bg);
+  border-color: var(--accent);
+  color: #fff;
 }
 
 .btn-primary:hover {
@@ -255,7 +275,7 @@ a {
   display: none;
   width: 44px;
   height: 44px;
-  border-radius: 999px;
+  border-radius: 0;
   border: 1px solid var(--border);
   color: var(--white);
   background: transparent;
@@ -266,8 +286,8 @@ a {
   inset: 0;
   z-index: 40;
   background: var(--overlay-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -282,10 +302,16 @@ a {
 }
 
 .mobile-menu a {
-  font-family: 'Michroma', sans-serif;
-  font-size: 2rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-family: 'Surgena', sans-serif;
+  font-size: clamp(2.4rem, 11vw, 3.2rem);
+  letter-spacing: 0.01em;
+  text-transform: lowercase;
+  color: var(--text-primary);
+}
+
+.mobile-menu a:hover,
+.mobile-menu a:active {
+  color: var(--accent);
 }
 
 .hero {
@@ -314,8 +340,9 @@ a {
 
 .hero-line {
   font-family: 'Surgena', sans-serif;
-  font-size: clamp(3rem, 9vw, 8rem);
-  line-height: 0.92;
+  font-size: clamp(3.4rem, 12vw, 10.5rem);
+  line-height: 0.88;
+  letter-spacing: -0.01em;
   text-transform: capitalize;
   margin: 0;
 }
@@ -574,7 +601,7 @@ a {
 .hero-side a {
   width: 2.2rem;
   height: 2.2rem;
-  border-radius: 999px;
+  border-radius: 0;
   border: 1px solid var(--border);
   display: grid;
   place-items: center;
@@ -628,6 +655,84 @@ a {
   font-family: 'Hanken Grotesk', serif;
   font-style: italic;
   font-size: 1.25rem;
+}
+
+/* Skills as an editorial index, not a grid of bordered cards - a plain
+   numbered list where the craft name itself is the largest thing on the
+   page and the only decoration is a hairline rule + a hover shift into
+   the one accent color, rather than a box per item. */
+.skills-index {
+  border-top: 1px solid var(--border);
+}
+
+.skills-row {
+  display: grid;
+  grid-template-columns: 2.2rem 1fr 1.6rem;
+  grid-template-areas: "index name arrow" "index desc arrow";
+  align-items: baseline;
+  column-gap: 1.25rem;
+  padding: 1.4rem 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  transition: padding-left 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s ease;
+}
+
+.skills-row-index {
+  grid-area: index;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+}
+
+.skills-row-name {
+  grid-area: name;
+  font-family: 'Surgena', sans-serif;
+  font-size: clamp(1.9rem, 5.4vw, 3.6rem);
+  line-height: 1;
+  text-transform: lowercase;
+}
+
+.skills-row-desc {
+  grid-area: desc;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  max-width: 30ch;
+  margin-top: 0.4rem;
+}
+
+.skills-row-arrow {
+  grid-area: arrow;
+  align-self: center;
+  justify-self: end;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.3rem;
+  color: var(--text-muted);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s ease;
+}
+
+@media (min-width: 640px) {
+  .skills-row {
+    grid-template-columns: 2.5rem 1fr auto 2rem;
+    grid-template-areas: "index name desc arrow";
+    align-items: center;
+  }
+
+  .skills-row-desc {
+    text-align: right;
+    justify-self: end;
+    margin-top: 0;
+  }
+}
+
+.skills-row:hover {
+  color: var(--accent);
+  padding-left: 0.75rem;
+}
+
+.skills-row:hover .skills-row-arrow {
+  transform: translateX(6px);
+  color: var(--accent);
 }
 
 .cards-grid {
@@ -1128,7 +1233,7 @@ a {
 .social {
   width: 36px;
   height: 36px;
-  border-radius: 999px;
+  border-radius: 0;
   border: 1px solid var(--border);
   display: grid;
   place-items: center;
@@ -1158,13 +1263,16 @@ a {
   cursor: none !important;
 }
 
+/* A viewfinder reticle, not a generic ring-cursor: a rotated square
+   bracket plus a tiny plus-mark center, reading as a camera/director's
+   viewfinder rather than the circle+dot pattern seen on countless sites.
+   mix-blend-mode:difference still does the work of staying visible
+   against any footage or theme without per-theme color logic. */
 .custom-cursor,
 .custom-cursor-dot {
   position: fixed;
   left: 0;
   top: 0;
-  border-radius: 999px;
-  transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 200;
   opacity: 0;
@@ -1173,16 +1281,20 @@ a {
 }
 
 .custom-cursor {
-  width: 38px;
-  height: 38px;
+  width: 26px;
+  height: 26px;
   background: transparent;
   border: 1.3px solid #fff;
-  transition: opacity 0.25s ease, width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-width 0.4s ease;
+  border-radius: 0;
+  transform: translate(-50%, -50%) rotate(45deg);
+  transition: opacity 0.25s ease, width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-width 0.4s ease, background 0.3s ease;
 }
 
 .custom-cursor-dot {
-  width: 7px;
-  height: 7px;
+  width: 3px;
+  height: 3px;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
   transition: opacity 0.25s ease, width 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -1198,10 +1310,11 @@ a {
 }
 
 .cursor-hover .custom-cursor {
-  width: 64px;
-  height: 64px;
-  background: rgba(255, 255, 255, 0.12);
-  border-width: 0;
+  width: 52px;
+  height: 52px;
+  background: transparent;
+  border-width: 1.3px;
+  transform: translate(-50%, -50%) rotate(0deg);
 }
 
 /* ---------- grain overlay ---------- */
