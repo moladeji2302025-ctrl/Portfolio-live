@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Motion Graphics — kinetic typography, brand narratives, and motion systems by MofeOluwa Oladeji." />
+  <title>Motion Graphics | MofeOluwa Oladeji</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <!-- Surgena is the site's major-header display font (section titles etc.),
+       self-hosted from /fonts and declared via @font-face in styles.css. -->
+  <link rel="preload" href="./fonts/Surgena.ttf" as="font" type="font/ttf" crossorigin />
+  <link rel="stylesheet" href="./styles.css" />
+  <!-- Google Analytics (GA4) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-2D0HS9BVYL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-2D0HS9BVYL');
+
+    // Delegated interaction tracking: catches clicks on every link/button,
+    // including elements created dynamically after this script runs.
+    document.addEventListener('click', function (event) {
+      var target = event.target.closest('a, button, [role="button"]');
+      if (!target) return;
+
+      var href = target.tagName === 'A' ? (target.getAttribute('href') || '') : '';
+      var text = (target.textContent || target.getAttribute('aria-label') || '')
+        .trim().replace(/\s+/g, ' ').slice(0, 100);
+
+      gtag('event', 'element_click', {
+        element_tag: target.tagName.toLowerCase(),
+        element_text: text,
+        element_id: target.id || '',
+        link_url: href,
+        page_path: window.location.pathname
+      });
+
+      if (target.classList.contains('filter-btn')) {
+        gtag('event', 'filter_select', { filter_value: target.dataset.filter || 'all' });
+      }
+
+      if (target.classList.contains('project-card-link')) {
+        var qs = new URLSearchParams(href.split('?')[1] || '');
+        gtag('event', 'project_open', {
+          project_id: qs.get('id') || '',
+          project_category: qs.get('category') || ''
+        });
+      }
+
+      if (/instagram\.com|linkedin\.com|youtube\.com/.test(href)) {
+        var platform = href.indexOf('instagram') > -1 ? 'instagram'
+          : href.indexOf('linkedin') > -1 ? 'linkedin' : 'youtube';
+        gtag('event', 'social_click', { platform: platform, link_url: href });
+      }
+
+      if (target.id === 'mobile-menu-toggle') {
+        gtag('event', 'mobile_menu_toggle', {});
+      }
+    }, true);
+  </script>
+</head>
+<body>
+  <div class="custom-cursor" aria-hidden="true"></div>
+  <div class="custom-cursor-dot" aria-hidden="true"></div>
+  <div class="page-loader" id="pageLoader" aria-hidden="true"></div>
+  <script>
+    try {
+      var storedTheme = localStorage.getItem('mo-theme') || 'light';
+      var arrivingViaNav = sessionStorage.getItem('mo-nav') === '1';
+      var loadTheme = arrivingViaNav ? (storedTheme === 'light' ? 'dark' : 'light') : storedTheme;
+      document.documentElement.setAttribute('data-theme', loadTheme);
+    } catch (e) {}
+    try {
+      if (sessionStorage.getItem('mo-nav') === '1') {
+        document.getElementById('pageLoader').classList.add('is-active', 'is-instant');
+        sessionStorage.removeItem('mo-nav');
+      }
+    } catch (e) {}
+  </script>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="index.html#home" class="logo">MO</a>
+      <nav class="nav-links">
+        <a class="nav-link" href="index.html#home">Home</a>
+        <a class="nav-link" href="index.html#about">About</a>
+        <a class="nav-link" href="index.html#portfolio">Portfolio</a>
+        <a class="nav-link" href="experience.html?id=tedx-gwarimpa">Experience</a>
+      </nav>
+      <div class="header-tools">
+        <button id="theme-switch" class="theme-switch" role="switch" aria-checked="false" aria-label="Toggle light and dark mode">
+          <span class="theme-switch-thumb"></span>
+        </button>
+        <a class="nav-cta" href="index.html#contact">Collaborate</a>
+        <button id="mobile-menu-toggle" class="menu-toggle" aria-label="Toggle menu" aria-expanded="false">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="mobile-menu" class="mobile-menu">
+    <a href="index.html#home">Home</a>
+    <a href="index.html#about">About</a>
+    <a href="index.html#portfolio">Portfolio</a>
+    <a href="experience.html?id=tedx-gwarimpa">Experience</a>
+    <a href="index.html#contact">Contact</a>
+  </div>
+
+  <main>
+    <section class="about-hero">
+      <video class="about-hero-video" src="img/motion-graphics-hero.mp4" autoplay muted loop playsinline preload="auto"></video>
+      <div class="about-hero-scrim" aria-hidden="true"></div>
+      <div class="container about-hero-inner reveal" data-animate>
+        <span class="section-label">Skill</span>
+        <h1 class="section-title">Motion Graphics</h1>
+        <p class="section-kicker">Dynamic visual storytelling built in After Effects — kinetic typography, brand narratives, and motion systems designed to move an audience.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container detail-layout">
+        <article class="reveal" data-animate>
+          <div class="section-heading">
+            <span class="section-label">Motion</span>
+            <h2 class="section-title">Craft</h2>
+          </div>
+          <p>I build kinetic systems that turn brand ideas into rhythm — typography, iconography, and motion working together instead of separately.</p>
+          <p class="muted">Every project starts with the story beat, then the visual system is built to carry it — clean transitions, purposeful easing, and a color language that stays on-brand.</p>
+          <p class="about-quote">“Motion should feel inevitable, not decorative.”</p>
+        </article>
+        <aside class="reveal" data-animate>
+          <div class="section-heading">
+            <span class="section-label">Core</span>
+            <h2 class="section-title">Focus</h2>
+          </div>
+          <div class="cards-grid" style="grid-template-columns:1fr;">
+            <article class="skill-card"><h3>Kinetic Typography</h3><p class="muted">Type that moves with intent, built to carry rhythm and meaning.</p></article>
+            <article class="skill-card"><h3>Brand Systems</h3><p class="muted">Consistent motion language across campaigns and touchpoints.</p></article>
+            <article class="skill-card"><h3>Explainer & Social Cuts</h3><p class="muted">Fast, clear storytelling built for short-form platforms.</p></article>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section section-alt">
+      <div class="container">
+        <div class="section-heading reveal" data-animate>
+          <span class="section-label">My</span>
+          <h2 class="section-title">Process</h2>
+        </div>
+        <div class="process-grid">
+          <article class="process-item reveal" data-animate><div class="process-no">01</div><h3>Listen</h3><p class="muted">Understand your goal, audience, and desired emotional tone.</p></article>
+          <article class="process-item reveal" data-animate data-delay="80"><div class="process-no">02</div><h3>Build</h3><p class="muted">Develop animatics, keyframes, and export-ready motion sequences.</p></article>
+          <article class="process-item reveal" data-animate data-delay="160"><div class="process-no">03</div><h3>Refine</h3><p class="muted">Review feedback and finalize for the platforms that matter most.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="contact">
+      <div class="container cta-block reveal" data-animate>
+        <span class="section-label">Let's</span>
+        <h2 class="section-title">Create</h2>
+        <p class="section-kicker" style="margin-inline:auto;">Open to collaborations, internships, and creative partnerships worldwide.</p>
+        <a class="btn btn-primary" href="mailto:mofejeriiseoluwa@gmail.com">Send Message →</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-bottom">
+      <p>© <span id="year"></span> MofeOluwa Oladeji. All Rights Reserved.</p>
+      <p><a href="index.html" class="inline-link">Back to Home</a></p>
+    </div>
+  </footer>
+
+  <script src="./chrome.js"></script>
+  <script src="./script.js"></script>
+</body>
+</html>
