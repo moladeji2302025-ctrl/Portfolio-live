@@ -1355,23 +1355,33 @@ a {
   -webkit-backdrop-filter: blur(18px);
 }
 
-/* Full-bleed video hero (About page): the clip fills the entire section
-   edge-to-edge as a background layer, with a bottom-weighted scrim so the
-   overlaid heading stays legible regardless of what's playing under it -
-   text color is pinned to white here rather than following the site's
-   light/dark theme tokens, since it has to read over live video either way. */
+/* Pinned video hero (About page): the clip is fixed to the viewport and
+   never moves - .about-hero itself keeps reserving the same block of
+   scroll distance it always did (min-height below) but is otherwise
+   empty now, an inert spacer, since its video/scrim children are pinned
+   to the viewport instead of sized to its box. Everything that follows
+   (still ordinary in-flow content, including the hero's own heading)
+   scrolls up over the fixed video and needs its own opaque background
+   plus a stacking order above it to actually cover it rather than the
+   video showing through. */
 .about-hero {
   position: relative;
   min-height: calc(100vh - var(--nav-height));
   display: flex;
   align-items: flex-end;
   overflow: hidden;
-  border-bottom: 1px solid var(--border);
+}
+
+.about-hero-video,
+.about-hero-scrim {
+  position: fixed;
+  top: var(--nav-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
 .about-hero-video {
-  position: absolute;
-  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -1379,8 +1389,6 @@ a {
 }
 
 .about-hero-scrim {
-  position: absolute;
-  inset: 0;
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.15) 45%, rgba(0, 0, 0, 0.8) 100%);
   z-index: 1;
 }
@@ -1399,6 +1407,21 @@ a {
   color: rgba(255, 255, 255, 0.82);
 }
 
+body.pinned-hero main > .section {
+  z-index: 3;
+  background: var(--bg);
+}
+
+body.pinned-hero main > .section-alt {
+  background: var(--bg-alt);
+}
+
+body.pinned-hero > .footer {
+  position: relative;
+  z-index: 3;
+  background: var(--bg);
+}
+
 @supports (height: 100svh) {
   .about-hero {
     min-height: calc(100svh - var(--nav-height));
@@ -1408,6 +1431,13 @@ a {
     .about-hero {
       min-height: calc(100svh - var(--nav-height-mobile));
     }
+  }
+}
+
+@media (max-width: 768px) {
+  .about-hero-video,
+  .about-hero-scrim {
+    top: var(--nav-height-mobile);
   }
 }
 
