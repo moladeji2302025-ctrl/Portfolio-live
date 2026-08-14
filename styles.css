@@ -12,7 +12,7 @@
   --accent-glow: rgba(0, 145, 179, 0.14);
   --signal: #6c4fe0;
   --danger: #d1435c;
-  --header-bg: rgba(250, 249, 251, 0.82);
+  --header-bg: rgba(250, 249, 251, 0.35);
   --overlay-bg: rgba(250, 249, 251, 0.97);
   --white: #12141b;
   --nav-height: 82px;
@@ -31,7 +31,7 @@
   --accent-glow: rgba(79, 216, 255, 0.18);
   --signal: #8b6bff;
   --danger: #ff8f8f;
-  --header-bg: rgba(5, 5, 5, 0.82);
+  --header-bg: rgba(5, 5, 5, 0.35);
   --overlay-bg: rgba(5, 5, 5, 0.97);
   --white: #ffffff;
 }
@@ -48,7 +48,7 @@
   --accent-glow: rgba(0, 145, 179, 0.14);
   --signal: #6c4fe0;
   --danger: #d1435c;
-  --header-bg: rgba(250, 249, 251, 0.82);
+  --header-bg: rgba(250, 249, 251, 0.35);
   --overlay-bg: rgba(250, 249, 251, 0.97);
   --white: #12141b;
 }
