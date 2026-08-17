@@ -1129,6 +1129,22 @@ a {
   color: var(--bg);
 }
 
+/* Behance is live in markup but not a real profile yet - dashed border
+   and suppressed hover read as "coming soon" rather than broken. Placed
+   after .social/.hero-side a's own hover rules so it reliably wins the
+   cascade on any element carrying both classes. */
+.social-pending {
+  opacity: 0.4;
+  border-style: dashed;
+  cursor: default;
+}
+
+.social-pending:hover {
+  background: transparent;
+  color: var(--text-muted);
+  border-color: var(--border);
+}
+
 .footer-bottom {
   margin-top: 2rem;
   border-top: 1px solid var(--border);
@@ -1346,9 +1362,6 @@ a {
 
 .detail-visual {
   border: 1px solid var(--border);
-  background: var(--surface);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
 }
 
 /* Pinned video hero (About page): the clip is fixed to the viewport and
@@ -1471,9 +1484,10 @@ body.pinned-hero > .footer {
   border: 1px solid var(--accent);
   color: var(--accent);
   padding: 0.45rem 0.7rem;
-  border-radius: 999px;
-  font-size: 0.68rem;
-  letter-spacing: 0.14em;
+  border-radius: 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
