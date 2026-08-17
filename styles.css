@@ -1,21 +1,21 @@
 :root {
-  /* "Director's Cut": ink on paper, one hot accent, everywhere else
-     neutral. Light ("Paper") is the site's default appearance regardless
-     of OS preference - dark ("Negative Film") is opt-in only, applied
+  /* "Director's Cut": ink on plain white, one crimson accent, everywhere
+     else neutral. Light is the site's default appearance regardless of
+     OS preference - dark ("Negative Film") is opt-in only, applied
      below via [data-theme='dark']. */
   color-scheme: light;
-  --bg: #f7f6f2;
-  --bg-alt: rgba(234, 231, 224, 0.6);
+  --bg: #ffffff;
+  --bg-alt: rgba(10, 10, 10, 0.035);
   --surface: rgba(10, 10, 10, 0.035);
   --border: rgba(10, 10, 10, 0.14);
   --text-primary: #0a0a0a;
   --text-muted: #6b6862;
-  --accent: #ff3b1f;
-  --accent-glow: rgba(255, 59, 31, 0.16);
-  --signal: #c22a13;
+  --accent: #b0102f;
+  --accent-glow: rgba(176, 16, 47, 0.16);
+  --signal: #7a0a20;
   --danger: #d1435c;
-  --header-bg: rgba(247, 246, 242, 0.88);
-  --overlay-bg: rgba(247, 246, 242, 0.98);
+  --header-bg: rgba(255, 255, 255, 0.88);
+  --overlay-bg: rgba(255, 255, 255, 0.98);
   --white: #0a0a0a;
   --nav-height: 82px;
   --nav-height-mobile: 72px;
@@ -29,9 +29,9 @@
   --border: rgba(247, 246, 242, 0.12);
   --text-primary: #f7f6f2;
   --text-muted: #9a968c;
-  --accent: #ff5a3c;
-  --accent-glow: rgba(255, 90, 60, 0.22);
-  --signal: #ff8a6b;
+  --accent: #ff2d55;
+  --accent-glow: rgba(255, 45, 85, 0.22);
+  --signal: #ff6b8a;
   --danger: #ff6a6a;
   --header-bg: rgba(5, 5, 5, 0.88);
   --overlay-bg: rgba(5, 5, 5, 0.98);
@@ -40,18 +40,18 @@
 
 :root[data-theme='light'] {
   color-scheme: light;
-  --bg: #f7f6f2;
-  --bg-alt: rgba(234, 231, 224, 0.6);
+  --bg: #ffffff;
+  --bg-alt: rgba(10, 10, 10, 0.035);
   --surface: rgba(10, 10, 10, 0.035);
   --border: rgba(10, 10, 10, 0.14);
   --text-primary: #0a0a0a;
   --text-muted: #6b6862;
-  --accent: #ff3b1f;
-  --accent-glow: rgba(255, 59, 31, 0.16);
-  --signal: #c22a13;
+  --accent: #b0102f;
+  --accent-glow: rgba(176, 16, 47, 0.16);
+  --signal: #7a0a20;
   --danger: #d1435c;
-  --header-bg: rgba(247, 246, 242, 0.88);
-  --overlay-bg: rgba(247, 246, 242, 0.98);
+  --header-bg: rgba(255, 255, 255, 0.88);
+  --overlay-bg: rgba(255, 255, 255, 0.98);
   --white: #0a0a0a;
 }
 
