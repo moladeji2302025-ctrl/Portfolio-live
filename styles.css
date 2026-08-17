@@ -133,22 +133,15 @@ a {
   margin-top: 1rem;
 }
 
-/* A projector-gate wipe rather than a plain fade+rise: content unspools
-   into view bottom-to-top. clip-path resets to fully open at rest, so
-   it never constrains anything once .is-visible lands - only the
-   one-time reveal itself is clipped. Same [data-animate]/IntersectionObserver
-   trigger in script.js, purely a CSS transition change. */
 .reveal {
   opacity: 0;
   transform: translateY(26px);
-  clip-path: inset(0 0 100% 0);
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), clip-path 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .reveal.is-visible {
   opacity: 1;
   transform: translateY(0);
-  clip-path: inset(0 0 0 0);
 }
 
 .site-header {
