@@ -1,58 +1,56 @@
 :root {
-  /* "Director's Cut": ink on plain white, one crimson accent, everywhere
-     else neutral. Light is the site's default appearance regardless of
-     OS preference - dark ("Negative Film") is opt-in only, applied
-     below via [data-theme='dark']. */
+  /* Light is the site's default appearance regardless of OS preference -
+     dark is opt-in only, applied below via [data-theme='dark']. */
   color-scheme: light;
-  --bg: #ffffff;
-  --bg-alt: rgba(10, 10, 10, 0.035);
-  --surface: rgba(10, 10, 10, 0.035);
-  --border: rgba(10, 10, 10, 0.14);
-  --text-primary: #0a0a0a;
-  --text-muted: #6b6862;
-  --accent: #b0102f;
-  --accent-glow: rgba(176, 16, 47, 0.16);
-  --signal: #7a0a20;
+  --bg: #faf9fb;
+  --bg-alt: rgba(241, 240, 244, 0.62);
+  --surface: rgba(10, 12, 20, 0.03);
+  --border: rgba(10, 12, 20, 0.09);
+  --text-primary: #12141b;
+  --text-muted: #666f80;
+  --accent: #0091b3;
+  --accent-glow: rgba(0, 145, 179, 0.14);
+  --signal: #6c4fe0;
   --danger: #d1435c;
-  --header-bg: rgba(255, 255, 255, 0.88);
-  --overlay-bg: rgba(255, 255, 255, 0.98);
-  --white: #0a0a0a;
+  --header-bg: rgba(250, 249, 251, 0.35);
+  --overlay-bg: rgba(250, 249, 251, 0.97);
+  --white: #12141b;
   --nav-height: 82px;
   --nav-height-mobile: 72px;
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #050505;
-  --bg-alt: rgba(20, 20, 20, 0.6);
-  --surface: rgba(247, 246, 242, 0.045);
-  --border: rgba(247, 246, 242, 0.12);
-  --text-primary: #f7f6f2;
-  --text-muted: #9a968c;
-  --accent: #ff2d55;
-  --accent-glow: rgba(255, 45, 85, 0.22);
-  --signal: #ff6b8a;
-  --danger: #ff6a6a;
-  --header-bg: rgba(5, 5, 5, 0.88);
-  --overlay-bg: rgba(5, 5, 5, 0.98);
+  --bg: #070707;
+  --bg-alt: rgba(16, 16, 16, 0.62);
+  --surface: rgba(255, 255, 255, 0.035);
+  --border: rgba(255, 255, 255, 0.09);
+  --text-primary: #f2f2f3;
+  --text-muted: #8c8f95;
+  --accent: #4fd8ff;
+  --accent-glow: rgba(79, 216, 255, 0.18);
+  --signal: #8b6bff;
+  --danger: #ff8f8f;
+  --header-bg: rgba(5, 5, 5, 0.35);
+  --overlay-bg: rgba(5, 5, 5, 0.97);
   --white: #ffffff;
 }
 
 :root[data-theme='light'] {
   color-scheme: light;
-  --bg: #ffffff;
-  --bg-alt: rgba(10, 10, 10, 0.035);
-  --surface: rgba(10, 10, 10, 0.035);
-  --border: rgba(10, 10, 10, 0.14);
-  --text-primary: #0a0a0a;
-  --text-muted: #6b6862;
-  --accent: #b0102f;
-  --accent-glow: rgba(176, 16, 47, 0.16);
-  --signal: #7a0a20;
+  --bg: #faf9fb;
+  --bg-alt: rgba(241, 240, 244, 0.62);
+  --surface: rgba(10, 12, 20, 0.03);
+  --border: rgba(10, 12, 20, 0.09);
+  --text-primary: #12141b;
+  --text-muted: #666f80;
+  --accent: #0091b3;
+  --accent-glow: rgba(0, 145, 179, 0.14);
+  --signal: #6c4fe0;
   --danger: #d1435c;
-  --header-bg: rgba(255, 255, 255, 0.88);
-  --overlay-bg: rgba(255, 255, 255, 0.98);
-  --white: #0a0a0a;
+  --header-bg: rgba(250, 249, 251, 0.35);
+  --overlay-bg: rgba(250, 249, 251, 0.97);
+  --white: #12141b;
 }
 
 body {
@@ -121,9 +119,9 @@ a {
 .section-title {
   margin: 0.25rem 0 0;
   font-family: 'Surgena', sans-serif;
-  font-size: clamp(3rem, 9vw, 7.6rem);
-  letter-spacing: -0.005em;
-  line-height: 0.92;
+  font-size: clamp(2.8rem, 8vw, 6.4rem);
+  letter-spacing: 0.03em;
+  line-height: 0.95;
   text-transform: lowercase;
 }
 
@@ -135,8 +133,8 @@ a {
 
 .reveal {
   opacity: 0;
-  transform: translateY(26px);
-  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
 }
 
 .reveal.is-visible {
@@ -149,8 +147,8 @@ a {
   top: 0;
   z-index: 30;
   background: var(--header-bg);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
   border-bottom: 1px solid var(--border);
   transition: background 0.5s ease, border-color 0.5s ease;
 }
@@ -163,33 +161,21 @@ a {
   gap: 1rem;
 }
 
-/* Slate-mark logo: a plain monospace frame number rather than a rounded
-   "app icon" wordmark - reads like a shot slate label, not a SaaS brand. */
 .logo {
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
-  font-size: 1.15rem;
-  letter-spacing: 0.02em;
+  font-family: 'Michroma', sans-serif;
+  font-size: 2rem;
+  letter-spacing: 0.08em;
   position: relative;
   display: inline-flex;
-  align-items: baseline;
-  gap: 0.35rem;
-  color: var(--text-primary);
+  align-items: center;
 }
 
 .logo::after {
-  content: 'MOFEOLUWA OLADEJI';
-  font-size: 0.6rem;
-  letter-spacing: 0.24em;
-  color: var(--text-muted);
-  font-weight: 500;
-  display: none;
-}
-
-@media (min-width: 700px) {
-  .logo::after {
-    display: inline;
-  }
+  content: '';
+  width: 1.25rem;
+  height: 0.16rem;
+  background: var(--accent);
+  margin-left: 0.4rem;
 }
 
 .nav-links {
@@ -199,8 +185,7 @@ a {
 
 .nav-link {
   position: relative;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -230,31 +215,26 @@ a {
   transform: scaleX(1);
 }
 
-/* Buttons: sharp corners, no fill at rest - a slate/stamp reads as
-   deliberate and printed, not a rounded "app" pill. */
 .nav-cta,
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 0;
-  border: 1px solid var(--text-primary);
+  border-radius: 999px;
+  border: 1px solid var(--accent);
   padding: 0.75rem 1.5rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   font-weight: 600;
-  color: var(--text-primary);
-  transition: all 0.25s ease;
+  transition: all 0.3s ease;
 }
 
 .nav-cta:hover,
 .btn-primary {
   background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
+  color: var(--bg);
 }
 
 .btn-primary:hover {
@@ -275,7 +255,7 @@ a {
   display: none;
   width: 44px;
   height: 44px;
-  border-radius: 0;
+  border-radius: 999px;
   border: 1px solid var(--border);
   color: var(--white);
   background: transparent;
@@ -286,8 +266,8 @@ a {
   inset: 0;
   z-index: 40;
   background: var(--overlay-bg);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -302,16 +282,10 @@ a {
 }
 
 .mobile-menu a {
-  font-family: 'Surgena', sans-serif;
-  font-size: clamp(2.4rem, 11vw, 3.2rem);
-  letter-spacing: 0.01em;
-  text-transform: lowercase;
-  color: var(--text-primary);
-}
-
-.mobile-menu a:hover,
-.mobile-menu a:active {
-  color: var(--accent);
+  font-family: 'Michroma', sans-serif;
+  font-size: 2rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .hero {
@@ -340,9 +314,8 @@ a {
 
 .hero-line {
   font-family: 'Surgena', sans-serif;
-  font-size: clamp(3.4rem, 12vw, 10.5rem);
-  line-height: 0.88;
-  letter-spacing: -0.01em;
+  font-size: clamp(3rem, 9vw, 8rem);
+  line-height: 0.92;
   text-transform: capitalize;
   margin: 0;
 }
@@ -601,7 +574,7 @@ a {
 .hero-side a {
   width: 2.2rem;
   height: 2.2rem;
-  border-radius: 0;
+  border-radius: 999px;
   border: 1px solid var(--border);
   display: grid;
   place-items: center;
@@ -657,95 +630,19 @@ a {
   font-size: 1.25rem;
 }
 
-/* Skills as an editorial index, not a grid of bordered cards - a plain
-   numbered list where the craft name itself is the largest thing on the
-   page and the only decoration is a hairline rule + a hover shift into
-   the one accent color, rather than a box per item. */
-.skills-index {
-  border-top: 1px solid var(--border);
-}
-
-.skills-row {
-  display: grid;
-  grid-template-columns: 2.2rem 1fr 1.6rem;
-  grid-template-areas: "index name arrow" "index desc arrow";
-  align-items: baseline;
-  column-gap: 1.25rem;
-  padding: 1.4rem 0;
-  border-bottom: 1px solid var(--border);
-  color: var(--text-primary);
-  transition: padding-left 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s ease;
-}
-
-.skills-row-index {
-  grid-area: index;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  letter-spacing: 0.06em;
-}
-
-.skills-row-name {
-  grid-area: name;
-  font-family: 'Surgena', sans-serif;
-  font-size: clamp(1.9rem, 5.4vw, 3.6rem);
-  line-height: 1;
-  text-transform: lowercase;
-}
-
-.skills-row-desc {
-  grid-area: desc;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  max-width: 30ch;
-  margin-top: 0.4rem;
-}
-
-.skills-row-arrow {
-  grid-area: arrow;
-  align-self: center;
-  justify-self: end;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 1.3rem;
-  color: var(--text-muted);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s ease;
-}
-
-@media (min-width: 640px) {
-  .skills-row {
-    grid-template-columns: 2.5rem 1fr auto 2rem;
-    grid-template-areas: "index name desc arrow";
-    align-items: center;
-  }
-
-  .skills-row-desc {
-    text-align: right;
-    justify-self: end;
-    margin-top: 0;
-  }
-}
-
-.skills-row:hover {
-  color: var(--accent);
-  padding-left: 0.75rem;
-}
-
-.skills-row:hover .skills-row-arrow {
-  transform: translateX(6px);
-  color: var(--accent);
-}
-
 .cards-grid {
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
-/* Hairline outline only - no frosted/filled panel behind any of these,
-   the border alone is enough to read as a distinct item in a grid. */
 .skill-card,
 .update-card,
-.faq-item {
+.faq-item,
+.testimonial-card {
+  background: var(--surface);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   border: 1px solid var(--border);
 }
 
@@ -778,13 +675,132 @@ a {
   text-transform: uppercase;
 }
 
-/* .filter-btn (used by the portfolio tabs), .project-card-link (a
-   tracking/hover-target class on .tile, see the shelf component further
-   down) - the old .portfolio-grid/.category-*/.project-card/-overlay/
-   -view rules that used to live in this block are gone: confirmed via a
-   full grep of every HTML/JS file that nothing renders those classes
-   any more, dead CSS left over from before the portfolio section became
-   the shelf below. */
+.filters {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.2rem;
+}
+
+.filter-btn {
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  background: transparent;
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.filter-btn.active {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+.portfolio-grid {
+  display: block;
+}
+
+.category-section {
+  margin-bottom: 3.5rem;
+}
+
+.category-section.is-hidden {
+  display: none;
+}
+
+.category-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.category-header .section-label {
+  font-size: 1rem;
+}
+
+.category-title {
+  margin: 0.1rem 0 0;
+  font-family: 'Surgena', sans-serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  letter-spacing: 0.03em;
+  text-transform: lowercase;
+  line-height: 1;
+}
+
+.category-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.project-card {
+  position: relative;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  min-height: 270px;
+  background: var(--surface);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  transition: transform 0.35s ease, opacity 0.35s ease;
+}
+
+.project-card img,
+.project-card video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.45s ease;
+}
+
+.project-card:hover img,
+.project-card:hover video {
+  transform: scale(1.08);
+}
+
+.project-overlay {
+  position: absolute;
+  inset: auto 0 0;
+  background: rgba(0, 0, 0, 0.75);
+  padding: 1.2rem;
+  transform: translateY(100%);
+  transition: transform 0.35s ease;
+}
+
+.project-card:hover .project-overlay {
+  transform: translateY(0);
+}
+
+.project-view {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%) scale(0.85);
+  width: 74px;
+  height: 74px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  letter-spacing: 0.12em;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  opacity: 0;
+  transition: all 0.35s ease;
+}
+
+.project-card:hover .project-view {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.project-card.is-hidden {
+  opacity: 0.1;
+  pointer-events: none;
+}
+
 .project-card-link {
   position: absolute;
   inset: 0;
@@ -816,16 +832,14 @@ a {
 }
 
 .stat-value {
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
+  font-family: 'Michroma', sans-serif;
   font-size: clamp(2.8rem, 6vw, 5rem);
   line-height: 0.9;
   color: var(--accent);
 }
 
 .stat-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -846,25 +860,30 @@ a {
   background: var(--border);
 }
 
-/* Numbers sit directly on the timeline rule, no card behind them - a
-   film-strip beat rather than a boxed feature tile. */
 .process-item {
   position: relative;
-  padding: 0 1.2rem;
+  background: var(--surface);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--border);
+  padding: 1.4rem;
 }
 
 .process-no {
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
-  font-size: 4rem;
-  color: var(--accent-glow);
-  -webkit-text-stroke: 1.5px var(--accent);
+  font-family: 'Michroma', sans-serif;
+  font-size: 4.4rem;
+  color: var(--accent);
   line-height: 0.9;
+  opacity: 0.8;
 }
 
 .cta-block {
   text-align: center;
   padding: 3rem 1rem;
+  border: 1px solid var(--border);
+  background: var(--bg-alt);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
 }
 
 .newsletter {
@@ -890,7 +909,7 @@ a {
 
 .newsletter textarea {
   border: 1px solid var(--accent);
-  border-radius: 0;
+  border-radius: 0.4rem;
   padding: 0.75rem;
   resize: vertical;
 }
@@ -978,7 +997,7 @@ a {
 .dot {
   width: 38px;
   height: 38px;
-  border-radius: 0;
+  border-radius: 999px;
   border: 1px solid var(--border);
   background: transparent;
   color: var(--white);
@@ -1109,7 +1128,7 @@ a {
 .social {
   width: 36px;
   height: 36px;
-  border-radius: 0;
+  border-radius: 999px;
   border: 1px solid var(--border);
   display: grid;
   place-items: center;
@@ -1120,22 +1139,6 @@ a {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--bg);
-}
-
-/* Behance is live in markup but not a real profile yet - dashed border
-   and suppressed hover read as "coming soon" rather than broken. Placed
-   after .social/.hero-side a's own hover rules so it reliably wins the
-   cascade on any element carrying both classes. */
-.social-pending {
-  opacity: 0.4;
-  border-style: dashed;
-  cursor: default;
-}
-
-.social-pending:hover {
-  background: transparent;
-  color: var(--text-muted);
-  border-color: var(--border);
 }
 
 .footer-bottom {
@@ -1155,16 +1158,13 @@ a {
   cursor: none !important;
 }
 
-/* A viewfinder reticle, not a generic ring-cursor: a rotated square
-   bracket plus a tiny plus-mark center, reading as a camera/director's
-   viewfinder rather than the circle+dot pattern seen on countless sites.
-   mix-blend-mode:difference still does the work of staying visible
-   against any footage or theme without per-theme color logic. */
 .custom-cursor,
 .custom-cursor-dot {
   position: fixed;
   left: 0;
   top: 0;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 200;
   opacity: 0;
@@ -1173,20 +1173,16 @@ a {
 }
 
 .custom-cursor {
-  width: 26px;
-  height: 26px;
+  width: 38px;
+  height: 38px;
   background: transparent;
   border: 1.3px solid #fff;
-  border-radius: 0;
-  transform: translate(-50%, -50%) rotate(45deg);
-  transition: opacity 0.25s ease, width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-width 0.4s ease, background 0.3s ease;
+  transition: opacity 0.25s ease, width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-width 0.4s ease;
 }
 
 .custom-cursor-dot {
-  width: 3px;
-  height: 3px;
-  border-radius: 999px;
-  transform: translate(-50%, -50%);
+  width: 7px;
+  height: 7px;
   transition: opacity 0.25s ease, width 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -1202,11 +1198,10 @@ a {
 }
 
 .cursor-hover .custom-cursor {
-  width: 52px;
-  height: 52px;
-  background: transparent;
-  border-width: 1.3px;
-  transform: translate(-50%, -50%) rotate(0deg);
+  width: 64px;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.12);
+  border-width: 0;
 }
 
 /* ---------- grain overlay ---------- */
@@ -1355,6 +1350,9 @@ a {
 
 .detail-visual {
   border: 1px solid var(--border);
+  background: var(--surface);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 /* Pinned video hero (About page): the clip is fixed to the viewport and
@@ -1477,10 +1475,9 @@ body.pinned-hero > .footer {
   border: 1px solid var(--accent);
   color: var(--accent);
   padding: 0.45rem 0.7rem;
-  border-radius: 0;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem;
-  letter-spacing: 0.1em;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
@@ -1722,11 +1719,10 @@ body.pinned-hero > .footer {
   color: var(--text-muted);
   border-radius: 0;
   padding: 0 0 0.6rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  text-transform: none;
   position: relative;
   transition: color 0.3s ease;
 }
@@ -1787,8 +1783,10 @@ body.pinned-hero > .footer {
   flex: none;
   width: 220px;
   height: 220px;
-  border-radius: 0;
-  background: var(--bg-alt);
+  border-radius: 20px;
+  background: var(--surface);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   border: 1px solid var(--border);
   position: relative;
   display: block;
@@ -1886,18 +1884,18 @@ body.pinned-hero > .footer {
   font-size: 0.6rem;
   letter-spacing: 0.08em;
   padding: 0.2rem 0.5rem;
-  border-radius: 0;
+  border-radius: 999px;
   background: var(--accent);
-  color: #fff;
+  color: var(--bg);
   font-weight: 700;
 }
 
 .indicator {
-  width: 3px;
-  height: 10px;
-  border-radius: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
   background: var(--accent);
-  margin: 0.6rem auto 0;
+  margin: 0.4rem auto 0;
   position: relative;
   transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 0 10px var(--accent-glow);
@@ -1962,11 +1960,9 @@ body.pinned-hero > .footer {
 }
 
 .info-tag {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.04em;
+  font-size: 0.75rem;
   padding: 0.35rem 0.85rem;
-  border-radius: 0;
+  border-radius: 999px;
   border: 1px solid var(--border);
   color: var(--text-muted);
 }
