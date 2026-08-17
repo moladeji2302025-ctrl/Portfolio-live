@@ -133,15 +133,22 @@ a {
   margin-top: 1rem;
 }
 
+/* A projector-gate wipe rather than a plain fade+rise: content unspools
+   into view bottom-to-top. clip-path resets to fully open at rest, so
+   it never constrains anything once .is-visible lands - only the
+   one-time reveal itself is clipped. Same [data-animate]/IntersectionObserver
+   trigger in script.js, purely a CSS transition change. */
 .reveal {
   opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.8s ease, transform 0.8s ease;
+  transform: translateY(26px);
+  clip-path: inset(0 0 100% 0);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1), clip-path 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .reveal.is-visible {
   opacity: 1;
   transform: translateY(0);
+  clip-path: inset(0 0 0 0);
 }
 
 .site-header {
@@ -741,13 +748,11 @@ a {
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
+/* Hairline outline only - no frosted/filled panel behind any of these,
+   the border alone is enough to read as a distinct item in a grid. */
 .skill-card,
 .update-card,
-.faq-item,
-.testimonial-card {
-  background: var(--surface);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+.faq-item {
   border: 1px solid var(--border);
 }
 
@@ -780,132 +785,13 @@ a {
   text-transform: uppercase;
 }
 
-.filters {
-  display: flex;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-  margin-bottom: 1.2rem;
-}
-
-.filter-btn {
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  background: transparent;
-  border-radius: 999px;
-  padding: 0.55rem 1rem;
-  font-size: 0.7rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.filter-btn.active {
-  background: var(--accent);
-  color: var(--bg);
-  border-color: var(--accent);
-}
-
-.portfolio-grid {
-  display: block;
-}
-
-.category-section {
-  margin-bottom: 3.5rem;
-}
-
-.category-section.is-hidden {
-  display: none;
-}
-
-.category-header {
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.category-header .section-label {
-  font-size: 1rem;
-}
-
-.category-title {
-  margin: 0.1rem 0 0;
-  font-family: 'Surgena', sans-serif;
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  letter-spacing: 0.03em;
-  text-transform: lowercase;
-  line-height: 1;
-}
-
-.category-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.project-card {
-  position: relative;
-  border: 1px solid var(--border);
-  overflow: hidden;
-  min-height: 270px;
-  background: var(--surface);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  transition: transform 0.35s ease, opacity 0.35s ease;
-}
-
-.project-card img,
-.project-card video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.45s ease;
-}
-
-.project-card:hover img,
-.project-card:hover video {
-  transform: scale(1.08);
-}
-
-.project-overlay {
-  position: absolute;
-  inset: auto 0 0;
-  background: rgba(0, 0, 0, 0.75);
-  padding: 1.2rem;
-  transform: translateY(100%);
-  transition: transform 0.35s ease;
-}
-
-.project-card:hover .project-overlay {
-  transform: translateY(0);
-}
-
-.project-view {
-  position: absolute;
-  inset: 50% auto auto 50%;
-  transform: translate(-50%, -50%) scale(0.85);
-  width: 74px;
-  height: 74px;
-  border-radius: 999px;
-  border: 1px solid var(--accent);
-  color: var(--accent);
-  display: grid;
-  place-items: center;
-  letter-spacing: 0.12em;
-  font-size: 0.62rem;
-  text-transform: uppercase;
-  opacity: 0;
-  transition: all 0.35s ease;
-}
-
-.project-card:hover .project-view {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
-}
-
-.project-card.is-hidden {
-  opacity: 0.1;
-  pointer-events: none;
-}
-
+/* .filter-btn (used by the portfolio tabs), .project-card-link (a
+   tracking/hover-target class on .tile, see the shelf component further
+   down) - the old .portfolio-grid/.category-*/.project-card/-overlay/
+   -view rules that used to live in this block are gone: confirmed via a
+   full grep of every HTML/JS file that nothing renders those classes
+   any more, dead CSS left over from before the portfolio section became
+   the shelf below. */
 .project-card-link {
   position: absolute;
   inset: 0;
@@ -937,14 +823,16 @@ a {
 }
 
 .stat-value {
-  font-family: 'Michroma', sans-serif;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
   font-size: clamp(2.8rem, 6vw, 5rem);
   line-height: 0.9;
   color: var(--accent);
 }
 
 .stat-label {
-  font-size: 0.72rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -965,30 +853,25 @@ a {
   background: var(--border);
 }
 
+/* Numbers sit directly on the timeline rule, no card behind them - a
+   film-strip beat rather than a boxed feature tile. */
 .process-item {
   position: relative;
-  background: var(--surface);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border: 1px solid var(--border);
-  padding: 1.4rem;
+  padding: 0 1.2rem;
 }
 
 .process-no {
-  font-family: 'Michroma', sans-serif;
-  font-size: 4.4rem;
-  color: var(--accent);
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 4rem;
+  color: var(--accent-glow);
+  -webkit-text-stroke: 1.5px var(--accent);
   line-height: 0.9;
-  opacity: 0.8;
 }
 
 .cta-block {
   text-align: center;
   padding: 3rem 1rem;
-  border: 1px solid var(--border);
-  background: var(--bg-alt);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
 }
 
 .newsletter {
@@ -1014,7 +897,7 @@ a {
 
 .newsletter textarea {
   border: 1px solid var(--accent);
-  border-radius: 0.4rem;
+  border-radius: 0;
   padding: 0.75rem;
   resize: vertical;
 }
@@ -1102,7 +985,7 @@ a {
 .dot {
   width: 38px;
   height: 38px;
-  border-radius: 999px;
+  border-radius: 0;
   border: 1px solid var(--border);
   background: transparent;
   color: var(--white);
@@ -1832,10 +1715,11 @@ body.pinned-hero > .footer {
   color: var(--text-muted);
   border-radius: 0;
   padding: 0 0 0.6rem;
-  font-size: 0.85rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: none;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   position: relative;
   transition: color 0.3s ease;
 }
@@ -1896,10 +1780,8 @@ body.pinned-hero > .footer {
   flex: none;
   width: 220px;
   height: 220px;
-  border-radius: 20px;
-  background: var(--surface);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  border-radius: 0;
+  background: var(--bg-alt);
   border: 1px solid var(--border);
   position: relative;
   display: block;
@@ -1997,18 +1879,18 @@ body.pinned-hero > .footer {
   font-size: 0.6rem;
   letter-spacing: 0.08em;
   padding: 0.2rem 0.5rem;
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--accent);
-  color: var(--bg);
+  color: #fff;
   font-weight: 700;
 }
 
 .indicator {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
+  width: 3px;
+  height: 10px;
+  border-radius: 0;
   background: var(--accent);
-  margin: 0.4rem auto 0;
+  margin: 0.6rem auto 0;
   position: relative;
   transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 0 10px var(--accent-glow);
@@ -2073,9 +1955,11 @@ body.pinned-hero > .footer {
 }
 
 .info-tag {
-  font-size: 0.75rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
   padding: 0.35rem 0.85rem;
-  border-radius: 999px;
+  border-radius: 0;
   border: 1px solid var(--border);
   color: var(--text-muted);
 }
